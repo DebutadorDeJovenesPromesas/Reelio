@@ -47,5 +47,4 @@ input[type="checkbox"]:checked:after {
 /* Estilos para los inputs con enfoque mejorado */
 input:focus {
     outline: none;
-    ring: 2px;
 }
