@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reelio - La Red Social para Fiestas y Eventos</title>
 
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Estilos -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="text-white">
 
     <div id="message-box" class="fixed top-5 right-5 z-50 p-4 rounded-lg shadow-xl hidden transition-opacity duration-300"></div>
 
-    <!-- HEADER -->
     <header class="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
             <div class="flex items-center">
@@ -33,7 +30,6 @@
         </div>
     </header>
 
-    <!-- MAIN -->
     <main class="w-full">
         <section id="inicio" class="flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-20 min-h-[90vh]" role="banner">
             <div class="max-w-4xl">
@@ -51,7 +47,6 @@
             </div>
         </section>
 
-        <!-- Características -->
         <section id="caracteristicas" class="py-20 bg-gray-900/50 border-t border-b border-gray-800 px-4 sm:px-6 lg:px-8" role="region">
             <div class="max-w-6xl mx-auto">
                 <h2 class="text-5xl font-extrabold text-center mb-16">¿Por qué usar Reelio para Fiestas?</h2>
@@ -79,7 +74,6 @@
             </div>
         </section>
 
-        <!-- Registro -->
         <section id="registro" class="py-24 px-4 sm:px-6 lg:px-8" role="form">
             <div class="max-w-xl mx-auto text-center">
                 <h2 class="text-5xl font-extrabold mb-4">¡No te quedes fuera!</h2>
@@ -102,7 +96,6 @@
         </section>
     </main>
 
-    <!-- FOOTER -->
     <footer class="bg-gray-900 border-t border-gray-800 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
             <div class="flex items-center justify-center mb-4">
@@ -110,15 +103,24 @@
                 <p class="text-xl font-bold text-white">Reelio</p>
             </div>
             <p class="text-gray-500 text-sm">&copy; 2025 Reelio. Todos los derechos reservados.</p>
-            <div class="mt-4 space-x-4 text-gray-400">
+            <div class="mt-4 flex justify-center items-center space-x-4 text-gray-400">
                 <a href="#" class="hover:text-cyan-400 text-sm">Privacidad</a>
                 <span>|</span>
                 <a href="#" class="hover:text-cyan-400 text-sm">Términos</a>
+                <span>|</span>
+                <a href="https://www.tiktok.com/@appreelio" target="_blank" class="hover:text-cyan-400 text-sm">
+                    <svg class="w-5 h-5 inline" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C12 0 12 1.3 12 2.7V10.2C12 10.9 11.4 11.5 10.7 11.5H8.3C7.6 11.5 7 10.9 7 10.2V5.7C7 5 6.4 4.4 5.7 4.4H4.3C3.6 4.4 3 5 3 5.7V10.2C3 15.6 7.4 20 12.8 20C18.2 20 22.6 15.6 22.6 10.2V7.7C22.6 7 22 6.4 21.3 6.4H19.9C19.2 6.4 18.6 7 18.6 7.7V10.2C18.6 13.5 15.9 16.2 12.6 16.2C9.3 16.2 6.6 13.5 6.6 10.2V5.7H9.1C9.8 5.7 10.4 6.3 10.4 7V10.2C10.4 11.8 11.5 13.1 13.1 13.1C14.7 13.1 16 11.8 16 10.2V4.4H18.5C19.2 4.4 19.8 5 19.8 5.7V10.2C19.8 14.5 16.2 17.9 11.9 17.9C7.6 17.9 4 14.5 4 10.2V5.7H6.5C7.2 5.7 7.8 6.3 7.8 7V10.2C7.8 11.8 8.9 13.1 10.5 13.1C12.1 13.1 13.4 11.8 13.4 10.2V2.7C13.4 1.3 13.4 0 13.4 0H12Z" /></svg>
+                    TikTok
+                </a>
+                <span>|</span>
+                <a href="https://www.instagram.com/appreelio" target="_blank" class="hover:text-cyan-400 text-sm">
+                    <svg class="w-5 h-5 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    Instagram
+                </a>
             </div>
         </div>
     </footer>
 
-    <!-- Script -->
     <script src="js/main.js"></script>
 </body>
 </html>
