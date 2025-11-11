@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0d1117;
+}
+
+#hero {
+    background-image: radial-gradient(at 20% 80%, #1e1b4b 0%, transparent 50%), 
+                      radial-gradient(at 80% 20%, #4c0519 0%, transparent 50%);
+    min-height: 100vh;
+}
+
+.gradient-text {
+    background-image: linear-gradient(90deg, #06b6d4, #f43f8a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}

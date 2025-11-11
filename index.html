@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reelio - La Red Social para Fiestas y Eventos</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="text-white">
+
+    <div id="message-box" class="fixed top-5 right-5 z-50 p-4 rounded-lg shadow-xl hidden transition-opacity duration-300"></div>
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
+            <div class="flex items-center">
+                <svg class="h-8 w-8 text-cyan-400 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.5V2"/><path d="M17 17l-5 4.5-5-4.5"/><path d="M17 12l-5 4.5-5-4.5"/><path d="M17 7l-5 4.5-5-4.5"/></svg>
+                <span class="text-2xl font-extrabold tracking-wider text-white">Reelio</span>
+            </div>
+            <nav class="hidden md:flex space-x-8 text-lg font-medium">
+                <a href="#inicio" class="text-gray-300 hover:text-cyan-400">Inicio</a>
+                <a href="#caracteristicas" class="text-gray-300 hover:text-cyan-400">Ventajas</a>
+                <a href="#registro" class="text-gray-300 hover:text-cyan-400">Pre-Registro</a>
+            </nav>
+            <a href="#registro" class="hidden sm:block px-5 py-2 bg-fuchsia-600 text-white font-bold rounded-xl hover:bg-fuchsia-700 shadow-lg shadow-fuchsia-600/40">
+                Únete Ahora
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="w-full">
+        <section id="inicio" class="flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-20 min-h-[90vh]" role="banner">
+            <div class="max-w-4xl">
+                <p class="text-lg uppercase tracking-widest font-semibold text-cyan-400 mb-4">Reelio te conecta</p>
+                <h1 class="text-6xl sm:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight">
+                    Tu Entrada a la <span class="gradient-text">Vida Nocturna</span> y <span class="gradient-text">Eventos</span>
+                </h1>
+                <p class="text-xl sm:text-2xl text-gray-300 mb-10 max-w-2xl mx-auto">
+                    <b>Reelio</b> es la red social definitiva para encontrar y unirte a los mejores grupos de fiestas, eventos locales o nacionales. ¡Tu vida social empieza aquí!
+                </p>
+                <a href="#registro" class="inline-flex items-center justify-center px-10 py-4 text-xl bg-cyan-600 text-white font-bold rounded-full hover:bg-cyan-700 shadow-2xl shadow-cyan-600/40 transform hover:scale-105">
+                    Encuentra tu Grupo de Fiesta
+                    <svg class="w-5 h-5 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+            </div>
+        </section>
+
+        <!-- Características -->
+        <section id="caracteristicas" class="py-20 bg-gray-900/50 border-t border-b border-gray-800 px-4 sm:px-6 lg:px-8" role="region">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-5xl font-extrabold text-center mb-16">¿Por qué usar Reelio para Fiestas?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+                    <div class="p-8 bg-gray-800 rounded-3xl shadow-xl border border-gray-700 hover:border-fuchsia-500 transition-colors">
+                        <svg class="w-10 h-10 text-fuchsia-400 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 17l-5 5-5-5M17 7l-5-5-5 5"/></svg>
+                        <h3 class="text-2xl font-bold mb-3">Encuentra Tu Evento Ideal</h3>
+                        <p class="text-gray-400">Localiza fiestas, conciertos y reuniones cerca de ti. Filtra por tipo de evento, música o ambiente.</p>
+                    </div>
+
+                    <div class="p-8 bg-gray-800 rounded-3xl shadow-xl border border-gray-700 hover:border-cyan-500 transition-colors">
+                        <svg class="w-10 h-10 text-cyan-400 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <h3 class="text-2xl font-bold mb-3">Únete a Grupos de Interés</h3>
+                        <p class="text-gray-400">Forma o únete a grupos exclusivos para planificar, compartir costos y vivir la experiencia juntos.</p>
+                    </div>
+
+                    <div class="p-8 bg-gray-800 rounded-3xl shadow-xl border border-gray-700 hover:border-yellow-500 transition-colors">
+                        <svg class="w-10 h-10 text-yellow-400 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0 0 9.8 8.6c-2.4 1.7-4.8 2.3-7.5 2.3-4.5 0-8.2-2-8.2-4.5 0-2 1.4-3.5 3.5-4.5"/><path d="M12 12a10 10 0 0 0 9.8 8.6c-2.4 1.7-4.8 2.3-7.5 2.3-4.5 0-8.2-2-8.2-4.5"/></svg>
+                        <h3 class="text-2xl font-bold mb-3">Experiencia y Seguridad</h3>
+                        <p class="text-gray-400">Chats de grupo en tiempo real y perfiles verificados. Comparte ubicación solo con tu grupo.</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Registro -->
+        <section id="registro" class="py-24 px-4 sm:px-6 lg:px-8" role="form">
+            <div class="max-w-xl mx-auto text-center">
+                <h2 class="text-5xl font-extrabold mb-4">¡No te quedes fuera!</h2>
+                <p class="text-xl text-gray-300 mb-8">Únete a la lista de espera de Reelio. Sé de los primeros en conseguir acceso.</p>
+
+                <div class="bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-700">
+                    <form id="waitlist-form" class="space-y-6">
+                        <div>
+                            <input type="text" id="name" placeholder="Tu Nombre Completo" class="w-full px-5 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-fuchsia-500 focus:border-fuchsia-500" required>
+                        </div>
+                        <div>
+                            <input type="email" id="email" placeholder="Correo Electrónico (Requerido)" class="w-full px-5 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-fuchsia-500 focus:border-fuchsia-500" required>
+                        </div>
+                        <button type="submit" class="w-full flex items-center justify-center px-5 py-3 text-lg bg-fuchsia-600 text-white font-bold rounded-xl hover:bg-fuchsia-700 shadow-xl shadow-fuchsia-600/40">
+                            Registrarme en la Lista de Espera
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 border-t border-gray-800 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
+            <div class="flex items-center justify-center mb-4">
+                <svg class="h-6 w-6 text-cyan-400 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.5V2"/><path d="M17 17l-5 4.5-5-4.5"/><path d="M17 12l-5 4.5-5-4.5"/><path d="M17 7l-5 4.5-5-4.5"/></svg>
+                <p class="text-xl font-bold text-white">Reelio</p>
+            </div>
+            <p class="text-gray-500 text-sm">&copy; 2025 Reelio. Todos los derechos reservados.</p>
+            <div class="mt-4 space-x-4 text-gray-400">
+                <a href="#" class="hover:text-cyan-400 text-sm">Privacidad</a>
+                <span>|</span>
+                <a href="#" class="hover:text-cyan-400 text-sm">Términos</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Script -->
+    <script src="js/main.js"></script>
+</body>
+</html>
