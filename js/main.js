@@ -22,39 +22,59 @@ document.addEventListener('DOMContentLoaded', () => {
     const waitlistForm = document.getElementById('waitlist-form');
 
     if (waitlistForm) {
-        waitlistForm.addEventListener('submit', async function(event) { // Añadir 'async'
+        waitlistForm.addEventListener('submit', async function(event) {
             event.preventDefault();
             
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
 
             if (name && email) {
-                // 1. Enviar datos al servidor para el correo
+                // Mostrar mensaje de carga
+                showMessage('⏳ Procesando tu registro...', 'success');
+                
                 try {
-                    const response = await fetch('/send-email', {
+                    // TU ID DE FORMSPREE: mzzyzbjl
+                    const response = await fetch('https://formspree.io/f/mzzyzbjl', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ name, email, targetEmail: 'appreelio@gmail.com' }),
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            _subject: `🎉 Nuevo registro Reelio: ${name}`,
+                            _replyto: email,
+                            message: `Nuevo usuario registrado en la lista de espera:\n\nNombre: ${name}\nEmail: ${email}\n\nFecha: ${new Date().toLocaleString()}`
+                        }),
                     });
                     
-                    // Nota: Esta parte asume que el servidor enviará el correo y responderá con éxito
                     if (response.ok) {
-                        showMessage(`¡Gracias, ${name}! Tu correo (${email}) ha sido agregado a la lista de espera.`, 'success');
+                        showMessage(`¡Gracias, ${name}! ✅ Te has registrado exitosamente en la lista de espera.`, 'success');
                         waitlistForm.reset();
                     } else {
-                        // El servidor respondió, pero con un error (ej: 400, 500)
-                        showMessage('Hubo un error al registrarte. Intenta de nuevo más tarde.', 'error');
+                        showMessage('❌ Hubo un error al registrarte. Intenta de nuevo.', 'error');
                     }
                 } catch (error) {
-                    // Falló la conexión al servidor
-                    console.error('Error al enviar la solicitud:', error);
-                    showMessage('Error de conexión. Intenta de nuevo más tarde.', 'error');
+                    console.error('Error:', error);
+                    showMessage('📡 Error de conexión. Intenta de nuevo.', 'error');
                 }
             } else {
-                showMessage('Por favor, completa todos los campos requeridos.', 'error');
+                showMessage('📝 Por favor, completa todos los campos requeridos.', 'error');
             }
         });
     }
+
+    // Smooth scrolling para enlaces internos
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
 });

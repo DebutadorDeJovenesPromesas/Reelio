@@ -7,7 +7,27 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+        }
+
+        #hero {
+            background-image: radial-gradient(at 20% 80%, #1e1b4b 0%, transparent 50%), 
+                              radial-gradient(at 80% 20%, #4c0519 0%, transparent 50%);
+            min-height: 100vh;
+        }
+
+        .gradient-text {
+            background-image: linear-gradient(90deg, #06b6d4, #f43f8a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+    </style>
 </head>
 <body class="text-white">
 
@@ -55,7 +75,6 @@
     </header>
 
     <main class="w-full">
-        <!-- Resto del contenido se mantiene igual -->
         <section id="inicio" class="flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-20 min-h-[90vh]" role="banner">
             <div class="max-w-4xl">
                 <p class="text-lg uppercase tracking-widest font-semibold text-cyan-400 mb-4">Reelio te conecta</p>
@@ -107,10 +126,10 @@
                 <div class="bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-700">
                     <form id="waitlist-form" class="space-y-6">
                         <div>
-                            <input type="text" id="name" placeholder="Tu Nombre Completo" class="w-full px-5 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-fuchsia-500 focus:border-fuchsia-500" required>
+                            <input type="text" id="name" name="name" placeholder="Tu Nombre Completo" class="w-full px-5 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-fuchsia-500 focus:border-fuchsia-500" required>
                         </div>
                         <div>
-                            <input type="email" id="email" placeholder="Correo Electrónico (Requerido)" class="w-full px-5 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-fuchsia-500 focus:border-fuchsia-500" required>
+                            <input type="email" id="email" name="email" placeholder="Correo Electrónico (Requerido)" class="w-full px-5 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:ring-fuchsia-500 focus:border-fuchsia-500" required>
                         </div>
                         <button type="submit" class="w-full flex items-center justify-center px-5 py-3 text-lg bg-fuchsia-600 text-white font-bold rounded-xl hover:bg-fuchsia-700 shadow-xl shadow-fuchsia-600/40">
                             Registrarme en la Lista de Espera
