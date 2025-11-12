@@ -5,11 +5,7 @@ body {
     background-color: #0d1117;
 }
 
-#hero {
-    background-image: radial-gradient(at 20% 80%, #1e1b4b 0%, transparent 50%), 
-                      radial-gradient(at 80% 20%, #4c0519 0%, transparent 50%);
-    min-height: 100vh;
-}
+
 
 .gradient-text {
     background-image: linear-gradient(90deg, #06b6d4, #f43f8a);
@@ -17,3 +13,4 @@ body {
     background-clip: text;
     color: transparent;
 }
+
