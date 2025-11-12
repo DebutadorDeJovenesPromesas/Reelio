@@ -15,23 +15,37 @@
 
     <header class="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
-            <div class="flex-1 flex justify-center md:justify-start items-center">
-                <a href="#inicio" class="flex items-center">
-                    <svg class="h-8 w-8 text-cyan-400 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.5V2"/><path d="M17 17l-5 4.5-5-4.5"/><path d="M17 12l-5 4.5-5-4.5"/><path d="M17 7l-5 4.5-5-4.5"/></svg>
-                    <span class="text-3xl sm:text-4xl font-extrabold tracking-wider text-white">Reelio</span>
-                </a>
-            </div>
-
+            <!-- Navegación izquierda -->
             <nav class="hidden md:flex space-x-8 text-lg font-medium">
                 <a href="#inicio" class="text-gray-300 hover:text-cyan-400">Inicio</a>
                 <a href="#caracteristicas" class="text-gray-300 hover:text-cyan-400">Ventajas</a>
                 <a href="#registro" class="text-gray-300 hover:text-cyan-400">Pre-Registro</a>
             </nav>
 
-            <div class="flex items-center space-x-4">
-                <a href="https://www.tiktok.com/@appreelio" target="_blank" class="text-gray-300 hover:text-cyan-400 hidden sm:block">
-                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C12 0 12 1.3 12 2.7V10.2C12 10.9 11.4 11.5 10.7 11.5H8.3C7.6 11.5 7 10.9 7 10.2V5.7C7 5 6.4 4.4 5.7 4.4H4.3C3.6 4.4 3 5 3 5.7V10.2C3 15.6 7.4 20 12.8 20C18.2 20 22.6 15.6 22.6 10.2V7.7C22.6 7 22 6.4 21.3 6.4H19.9C19.2 6.4 18.6 7 18.6 7.7V10.2C18.6 13.5 15.9 16.2 12.6 16.2C9.3 16.2 6.6 13.5 6.6 10.2V5.7H9.1C9.8 5.7 10.4 6.3 10.4 7V10.2C10.4 11.8 11.5 13.1 13.1 13.1C14.7 13.1 16 11.8 16 10.2V4.4H18.5C19.2 4.4 19.8 5 19.8 5.7V10.2C19.8 14.5 16.2 17.9 11.9 17.9C7.6 17.9 4 14.5 4 10.2V5.7H6.5C7.2 5.7 7.8 6.3 7.8 7V10.2C7.8 11.8 8.9 13.1 10.5 13.1C12.1 13.1 13.4 11.8 13.4 10.2V2.7C13.4 1.3 13.4 0 13.4 0H12Z" /></svg>
+            <!-- Logo centrado -->
+            <div class="flex-1 flex justify-center items-center">
+                <a href="#inicio" class="flex items-center">
+                    <svg class="h-10 w-10 text-cyan-400 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.5V2"/><path d="M17 17l-5 4.5-5-4.5"/><path d="M17 12l-5 4.5-5-4.5"/><path d="M17 7l-5 4.5-5-4.5"/></svg>
+                    <span class="text-4xl sm:text-5xl font-extrabold tracking-wider text-white">Reelio</span>
                 </a>
+            </div>
+
+            <!-- Redes sociales y botón -->
+            <div class="flex items-center space-x-4">
+                <div class="flex space-x-3">
+                    <a href="https://www.tiktok.com/@appreelio" target="_blank" class="text-gray-300 hover:text-cyan-400">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 0 1 3.183-4.51v-3.5a6.329 6.329 0 0 0-5.394 10.692 6.33 6.33 0 0 0 10.857-4.424V8.687a8.182 8.182 0 0 0 4.773 1.526V6.79a4.831 4.831 0 0 1-1.003-.104z"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.instagram.com/appreelio" target="_blank" class="text-gray-300 hover:text-cyan-400">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                </div>
                 
                 <a href="#registro" class="hidden sm:block px-5 py-2 bg-fuchsia-600 text-white font-bold rounded-xl hover:bg-fuchsia-700 shadow-lg shadow-fuchsia-600/40">
                     Únete Ahora
@@ -41,6 +55,7 @@
     </header>
 
     <main class="w-full">
+        <!-- Resto del contenido se mantiene igual -->
         <section id="inicio" class="flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-20 min-h-[90vh]" role="banner">
             <div class="max-w-4xl">
                 <p class="text-lg uppercase tracking-widest font-semibold text-cyan-400 mb-4">Reelio te conecta</p>
@@ -119,7 +134,9 @@
                 <a href="#" class="hover:text-cyan-400 text-sm">Términos</a>
                 <span>|</span>
                 <a href="https://www.tiktok.com/@appreelio" target="_blank" class="hover:text-cyan-400 text-sm">
-                    <svg class="w-5 h-5 inline" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C12 0 12 1.3 12 2.7V10.2C12 10.9 11.4 11.5 10.7 11.5H8.3C7.6 11.5 7 10.9 7 10.2V5.7C7 5 6.4 4.4 5.7 4.4H4.3C3.6 4.4 3 5 3 5.7V10.2C3 15.6 7.4 20 12.8 20C18.2 20 22.6 15.6 22.6 10.2V7.7C22.6 7 22 6.4 21.3 6.4H19.9C19.2 6.4 18.6 7 18.6 7.7V10.2C18.6 13.5 15.9 16.2 12.6 16.2C9.3 16.2 6.6 13.5 6.6 10.2V5.7H9.1C9.8 5.7 10.4 6.3 10.4 7V10.2C10.4 11.8 11.5 13.1 13.1 13.1C14.7 13.1 16 11.8 16 10.2V4.4H18.5C19.2 4.4 19.8 5 19.8 5.7V10.2C19.8 14.5 16.2 17.9 11.9 17.9C7.6 17.9 4 14.5 4 10.2V5.7H6.5C7.2 5.7 7.8 6.3 7.8 7V10.2C7.8 11.8 8.9 13.1 10.5 13.1C12.1 13.1 13.4 11.8 13.4 10.2V2.7C13.4 1.3 13.4 0 13.4 0H12Z" /></svg>
+                    <svg class="w-5 h-5 inline" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 0 1 3.183-4.51v-3.5a6.329 6.329 0 0 0-5.394 10.692 6.33 6.33 0 0 0 10.857-4.424V8.687a8.182 8.182 0 0 0 4.773 1.526V6.79a4.831 4.831 0 0 1-1.003-.104z"/>
+                    </svg>
                     TikTok
                 </a>
                 <span>|</span>
