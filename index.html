@@ -27,6 +27,26 @@
             background-clip: text;
             color: transparent;
         }
+
+        /* Logo como marca de agua */
+        .logo-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            z-index: 0;
+            pointer-events: none;
+            max-width: 600px;
+            width: 80%;
+            filter: brightness(0) invert(1);
+        }
+
+        /* Asegurar que el contenido esté por encima */
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="text-white">
@@ -75,8 +95,11 @@
     </header>
 
     <main class="w-full">
-        <section id="inicio" class="flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-20 min-h-[90vh]" role="banner">
-            <div class="max-w-4xl">
+        <section id="inicio" class="relative flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-20 min-h-[90vh]" role="banner">
+            <!-- Logo como marca de agua en el fondo -->
+            <img src="images/Logo.jpg" alt="Reelio" class="logo-watermark">
+            
+            <div class="hero-content max-w-4xl">
                 <p class="text-lg uppercase tracking-widest font-semibold text-cyan-400 mb-4">Reelio te conecta</p>
                 <h1 class="text-6xl sm:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight">
                     Tu Entrada a la <span class="gradient-text">Vida Nocturna</span> y <span class="gradient-text">Eventos</span>
@@ -143,7 +166,7 @@
     <footer class="bg-gray-900 border-t border-gray-800 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
             <div class="flex items-center justify-center mb-4">
-                <img src="/images/logo.jpg" alt="Reelio Logo" class="h-6 w-6 object-contain mr-2">
+                <img src="images/Logo.jpg" alt="Reelio Logo" class="h-6 w-6 object-contain mr-2">
                 <p class="text-xl font-bold text-white">Reelio</p>
             </div>
             <p class="text-gray-500 text-sm">&copy; 2025 Reelio. Todos los derechos reservados.</p>
