@@ -22,15 +22,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const waitlistForm = document.getElementById('waitlist-form');
 
     if (waitlistForm) {
-        waitlistForm.addEventListener('submit', function(event) {
+        waitlistForm.addEventListener('submit', async function(event) { // Añadir 'async'
             event.preventDefault();
             
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
 
             if (name && email) {
-                showMessage(`¡Gracias, ${name}! Tu correo (${email}) ha sido agregado a la lista de espera.`, 'success');
-                waitlistForm.reset();
+                // 1. Enviar datos al servidor para el correo
+                try {
+                    const response = await fetch('/send-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name, email, targetEmail: 'appreelio@gmail.com' }),
+                    });
+                    
+                    // Nota: Esta parte asume que el servidor enviará el correo y responderá con éxito
+                    if (response.ok) {
+                        showMessage(`¡Gracias, ${name}! Tu correo (${email}) ha sido agregado a la lista de espera.`, 'success');
+                        waitlistForm.reset();
+                    } else {
+                        // El servidor respondió, pero con un error (ej: 400, 500)
+                        showMessage('Hubo un error al registrarte. Intenta de nuevo más tarde.', 'error');
+                    }
+                } catch (error) {
+                    // Falló la conexión al servidor
+                    console.error('Error al enviar la solicitud:', error);
+                    showMessage('Error de conexión. Intenta de nuevo más tarde.', 'error');
+                }
             } else {
                 showMessage('Por favor, completa todos los campos requeridos.', 'error');
             }
