@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (name && email) {
                 // Mostrar mensaje de carga
-                showMessage('⏳ Procesando tu registro...', 'success');
+                showMessage('Procesando tu registro...', 'success');
                 
                 try {
                     // TU ID DE FORMSPREE: mzzyzbjl
@@ -42,24 +42,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: JSON.stringify({
                             name: name,
                             email: email,
-                            _subject: `🎉 Nuevo registro Reelio: ${name}`,
+                            _subject: `Nuevo registro Reelio: ${name}`,
                             _replyto: email,
                             message: `Nuevo usuario registrado en la lista de espera:\n\nNombre: ${name}\nEmail: ${email}\n\nFecha: ${new Date().toLocaleString()}`
                         }),
                     });
                     
                     if (response.ok) {
-                        showMessage(`¡Gracias, ${name}! ✅ Te has registrado exitosamente en la lista de espera.`, 'success');
+                        showMessage(`¡Gracias, ${name}! Te has registrado exitosamente en la lista de espera.`, 'success');
                         waitlistForm.reset();
                     } else {
-                        showMessage('❌ Hubo un error al registrarte. Intenta de nuevo.', 'error');
+                        showMessage('Hubo un error al registrarte. Intenta de nuevo.', 'error');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    showMessage('📡 Error de conexión. Intenta de nuevo.', 'error');
+                    showMessage('Error de conexión. Intenta de nuevo.', 'error');
                 }
             } else {
-                showMessage('📝 Por favor, completa todos los campos requeridos.', 'error');
+                showMessage('Por favor, completa todos los campos requeridos.', 'error');
             }
         });
     }
