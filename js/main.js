@@ -1,3 +1,25 @@
+// ========== CONFIGURACIÓN FIREBASE ==========
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-analytics.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+
+// Tu configuración de Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyAT22wMZyUIfoYLtCF7GCyjn41QNF5dEG0",
+    authDomain: "reelio-3705b.firebaseapp.com",
+    projectId: "reelio-3705b",
+    storageBucket: "reelio-3705b.firebasestorage.app",
+    messagingSenderId: "579566765924",
+    appId: "1:579566765924:web:c73b8bddbc5ee4ba6b5c71",
+    measurementId: "G-7J6CQZVMPM"
+};
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+
+// ========== FUNCIONES DE UI ==========
 const messageBox = document.getElementById('message-box');
 
 function showMessage(message, type = 'success') {
@@ -18,6 +40,7 @@ function showMessage(message, type = 'success') {
     }, 3000);
 }
 
+// ========== LÓGICA DEL FORMULARIO ==========
 document.addEventListener('DOMContentLoaded', () => {
     const waitlistForm = document.getElementById('waitlist-form');
 
@@ -25,38 +48,26 @@ document.addEventListener('DOMContentLoaded', () => {
         waitlistForm.addEventListener('submit', async function(event) {
             event.preventDefault();
             
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
 
             if (name && email) {
-                // Mostrar mensaje de carga
                 showMessage('Procesando tu registro...', 'success');
                 
                 try {
-                    // TU ID DE FORMSPREE: mzzyzbjl
-                    const response = await fetch('https://formspree.io/f/mzzyzbjl', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            name: name,
-                            email: email,
-                            _subject: `Nuevo registro Reelio: ${name}`,
-                            _replyto: email,
-                            message: `Nuevo usuario registrado en la lista de espera:\n\nNombre: ${name}\nEmail: ${email}\n\nFecha: ${new Date().toLocaleString()}`
-                        }),
+                    // Guardar en Firestore
+                    await addDoc(collection(db, "waitlist"), {
+                        nombre: name,
+                        email: email,
+                        fechaRegistro: serverTimestamp()
                     });
                     
-                    if (response.ok) {
-                        showMessage(`¡Gracias, ${name}! Te has registrado exitosamente en la lista de espera.`, 'success');
-                        waitlistForm.reset();
-                    } else {
-                        showMessage('Hubo un error al registrarte. Intenta de nuevo.', 'error');
-                    }
+                    showMessage(`¡Gracias, ${name}! Te has registrado exitosamente en la lista de espera.`, 'success');
+                    waitlistForm.reset();
+                    
                 } catch (error) {
-                    console.error('Error:', error);
-                    showMessage('Error de conexión. Intenta de nuevo.', 'error');
+                    console.error('Error al guardar en Firebase:', error);
+                    showMessage('Error al registrarte. Intenta de nuevo.', 'error');
                 }
             } else {
                 showMessage('Por favor, completa todos los campos requeridos.', 'error');
