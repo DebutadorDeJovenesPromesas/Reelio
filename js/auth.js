@@ -337,6 +337,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Validación de username en tiempo real
+    const usernameInput = document.getElementById('reg-username');
+    const usernameHint = document.getElementById('username-hint');
+    const usernameError = document.getElementById('username-error');
+    const usernameSuccess = document.getElementById('username-success');
+
+    if (usernameInput) {
+        usernameInput.addEventListener('input', () => {
+            const username = usernameInput.value.trim();
+            
+            if (username.length === 0) {
+                usernameHint.classList.remove('hidden');
+                usernameError.classList.add('hidden');
+                usernameSuccess.classList.add('hidden');
+            } else if (!validateUsername(username)) {
+                usernameHint.classList.add('hidden');
+                usernameError.classList.remove('hidden');
+                usernameSuccess.classList.add('hidden');
+                
+                // Mensaje específico según el error
+                if (username.length < 3) {
+                    usernameError.textContent = '✗ Mínimo 3 caracteres';
+                } else if (username.length > 20) {
+                    usernameError.textContent = '✗ Máximo 20 caracteres';
+                } else {
+                    usernameError.textContent = '✗ Solo letras, números y guiones bajos (_)';
+                }
+            } else {
+                usernameHint.classList.add('hidden');
+                usernameError.classList.add('hidden');
+                usernameSuccess.classList.remove('hidden');
+            }
+        });
+    }
+
     // Toggle password visibility - Login
     const toggleLoginPassword = document.getElementById('toggle-login-password');
     const loginPasswordInput = document.getElementById('login-password');
@@ -367,30 +402,57 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Password strength indicator
+    // Password strength indicator con checks visuales
     const passwordStrengthBar = document.getElementById('password-strength');
-    const passwordStrengthText = document.getElementById('password-strength-text');
+
+    // Función para actualizar requisitos visuales
+    function updatePasswordRequirements(password) {
+        const requirements = {
+            'req-length': password.length >= 8,
+            'req-upper': /[A-Z]/.test(password),
+            'req-lower': /[a-z]/.test(password),
+            'req-number': /\d/.test(password),
+            'req-chars': /^[a-zA-Z\d@$!%*?&]*$/.test(password) && password.length > 0
+        };
+
+        for (const [id, passed] of Object.entries(requirements)) {
+            const element = document.getElementById(id);
+            if (element) {
+                const icon = element.querySelector('.req-icon');
+                if (passed) {
+                    element.classList.remove('text-gray-500', 'text-red-400');
+                    element.classList.add('text-green-400');
+                    icon.textContent = '✓';
+                } else if (password.length > 0) {
+                    element.classList.remove('text-gray-500', 'text-green-400');
+                    element.classList.add('text-red-400');
+                    icon.textContent = '✗';
+                } else {
+                    element.classList.remove('text-green-400', 'text-red-400');
+                    element.classList.add('text-gray-500');
+                    icon.textContent = '○';
+                }
+            }
+        }
+
+        return Object.values(requirements).filter(Boolean).length;
+    }
 
     if (regPasswordInput && passwordStrengthBar) {
         regPasswordInput.addEventListener('input', () => {
-            const strength = getPasswordStrength(regPasswordInput.value);
+            const password = regPasswordInput.value;
+            const passedCount = updatePasswordRequirements(password);
+            
             passwordStrengthBar.className = 'password-strength';
             
-            if (regPasswordInput.value.length === 0) {
+            if (password.length === 0) {
                 passwordStrengthBar.style.width = '0%';
-                passwordStrengthText.textContent = 'Mínimo 8 caracteres, mayúscula, minúscula y número';
-            } else if (strength <= 1) {
+            } else if (passedCount <= 2) {
                 passwordStrengthBar.classList.add('strength-weak');
-                passwordStrengthText.textContent = 'Contraseña débil';
-                passwordStrengthText.className = 'text-xs text-red-400 mt-1';
-            } else if (strength <= 2) {
+            } else if (passedCount <= 4) {
                 passwordStrengthBar.classList.add('strength-medium');
-                passwordStrengthText.textContent = 'Contraseña media';
-                passwordStrengthText.className = 'text-xs text-yellow-400 mt-1';
             } else {
                 passwordStrengthBar.classList.add('strength-strong');
-                passwordStrengthText.textContent = 'Contraseña fuerte';
-                passwordStrengthText.className = 'text-xs text-green-400 mt-1';
             }
         });
     }
