@@ -68,10 +68,10 @@
             </div>
             
             <nav class="hidden md:flex items-center space-x-6">
-                <a href="#" class="text-gray-300 hover:text-cyan-400 transition-colors">Inicio</a>
-                <a href="#" class="text-gray-300 hover:text-cyan-400 transition-colors">Eventos</a>
-                <a href="#" class="text-gray-300 hover:text-cyan-400 transition-colors">Grupos</a>
-                <a href="#" class="text-gray-300 hover:text-cyan-400 transition-colors">Mensajes</a>
+                <a href="app.html" class="text-cyan-400 font-semibold transition-colors">Inicio</a>
+                <a href="#" onclick="showComingSoon('Eventos'); return false;" class="text-gray-300 hover:text-cyan-400 transition-colors">Eventos</a>
+                <a href="#" onclick="showComingSoon('Grupos'); return false;" class="text-gray-300 hover:text-cyan-400 transition-colors">Grupos</a>
+                <a href="#" onclick="showComingSoon('Mensajes'); return false;" class="text-gray-300 hover:text-cyan-400 transition-colors">Mensajes</a>
             </nav>
             
             <div class="flex items-center space-x-4">
@@ -92,14 +92,14 @@
                             <p id="dropdown-email" class="text-xs text-gray-500 mt-1"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e1848c80888da1848b848c918d8ecf828e8c">[email&#160;protected]</a></p>
                         </div>
                         <div class="py-2">
-                            <a href="#" class="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                            <a href="#" onclick="showComingSoon('Mi Perfil'); return false;" class="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
                                 <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="12" cy="7" r="4"></circle>
                                 </svg>
                                 Mi Perfil
                             </a>
-                            <a href="#" class="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                            <a href="#" onclick="showComingSoon('Configuración'); return false;" class="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
                                 <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="3"></circle>
                                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -207,8 +207,19 @@
 
     <!-- Footer -->
     <footer class="bg-gray-900 border-t border-gray-800 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
-            <p class="text-gray-500 text-sm">© 2025 Reelio. Todos los derechos reservados.</p>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-sm">© 2025 Reelio. Todos los derechos reservados.</p>
+                <div class="flex items-center space-x-4 text-gray-500 text-sm">
+                    <a href="politica-privacidad.html" class="hover:text-cyan-400 transition-colors">Privacidad</a>
+                    <span>|</span>
+                    <a href="politica-cookies.html" class="hover:text-cyan-400 transition-colors">Cookies</a>
+                    <span>|</span>
+                    <a href="terminos-condiciones.html" class="hover:text-cyan-400 transition-colors">Términos</a>
+                    <span>|</span>
+                    <a href="aviso-legal.html" class="hover:text-cyan-400 transition-colors">Aviso Legal</a>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -227,11 +238,13 @@
         // Función para mostrar mensajes
         function showMessage(message, type = 'success') {
             messageBox.textContent = message;
-            messageBox.classList.remove('hidden', 'opacity-0', 'bg-red-600/20', 'text-red-400', 'bg-green-600/20', 'text-green-400');
+            messageBox.classList.remove('hidden', 'opacity-0', 'bg-red-600/20', 'text-red-400', 'bg-green-600/20', 'text-green-400', 'bg-blue-600/20', 'text-blue-400');
             messageBox.classList.add('opacity-100');
             
             if (type === 'success') {
                 messageBox.classList.add('bg-green-600/20', 'text-green-400', 'border', 'border-green-600/50');
+            } else if (type === 'info') {
+                messageBox.classList.add('bg-blue-600/20', 'text-blue-400', 'border', 'border-blue-600/50');
             } else {
                 messageBox.classList.add('bg-red-600/20', 'text-red-400', 'border', 'border-red-600/50');
             }
@@ -239,6 +252,11 @@
             setTimeout(() => {
                 messageBox.classList.add('hidden');
             }, 4000);
+        }
+
+        // Función para mostrar "Próximamente" - hacerla global
+        window.showComingSoon = function(feature) {
+            showMessage(`🚧 ${feature}: ¡Próximamente! Estamos trabajando en esta funcionalidad.`, 'info');
         }
 
         // Actualizar UI con datos del usuario
@@ -286,7 +304,7 @@
                 loadingScreen.classList.add('hidden');
             } else {
                 // Redirigir a login si no hay usuario
-                window.location.replace('./login.html');
+                window.location.replace('./index.html');
             }
         });
 
@@ -309,7 +327,7 @@
                 showMessage('Sesión cerrada correctamente', 'success');
                 // Pequeño delay para mostrar el mensaje
                 setTimeout(() => {
-                    window.location.replace('./login.html');
+                    window.location.replace('./index.html');
                 }, 500);
             } else {
                 showMessage('Error al cerrar sesión', 'error');
