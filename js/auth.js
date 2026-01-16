@@ -219,30 +219,35 @@ async function loginWithGoogle() {
         const existingProfile = await getUserProfile(user.uid);
         
         if (!existingProfile) {
-            // Crear perfil para nuevo usuario de Google
-            // Generar username único basado en email
-            const emailPrefix = user.email.split('@')[0];
-            let username = emailPrefix.replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 15);
-            
-            // Verificar si el username existe y añadir números si es necesario
-            let counter = 1;
-            let finalUsername = username;
-            while (await checkUsernameExists(finalUsername)) {
-                finalUsername = `${username}${counter}`;
-                counter++;
-            }
-
-            await createUserProfile(user, {
-                nombreCompleto: user.displayName || '',
-                username: finalUsername.toLowerCase()
-            });
+            // Usuario nuevo de Google - necesita elegir username
+            return { success: true, user, needsUsername: true };
         } else {
             await updateLastAccess(user.uid);
+            return { success: true, user, needsUsername: false };
         }
-
-        return { success: true, user };
     } catch (error) {
         console.error('Error en login con Google:', error);
+        return { success: false, error: getErrorMessage(error) };
+    }
+}
+
+// Crear perfil para usuario de Google (después de elegir username)
+async function createGoogleUserProfile(user, username) {
+    try {
+        // Verificar si el username ya existe
+        const usernameExists = await checkUsernameExists(username);
+        if (usernameExists) {
+            return { success: false, error: 'Este nombre de usuario ya está en uso.' };
+        }
+
+        await createUserProfile(user, {
+            nombreCompleto: user.displayName || '',
+            username: username.toLowerCase()
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error al crear perfil de Google:', error);
         return { success: false, error: getErrorMessage(error) };
     }
 }
@@ -290,21 +295,28 @@ function getErrorMessage(error) {
 
 // ========== OBSERVER DE AUTENTICACIÓN ==========
 onAuthStateChanged(auth, async (user) => {
+    const currentPath = window.location.pathname;
+    const isLoginPage = currentPath.includes('login.html') || currentPath.endsWith('/') || currentPath === '';
+    const isAppPage = currentPath.includes('app.html');
+    
     if (user) {
         // Usuario autenticado
         console.log('Usuario autenticado:', user.email);
         
-        // Si estamos en login.html, redirigir a la app
-        if (window.location.pathname.includes('login.html') || window.location.pathname === '/') {
-            window.location.href = 'app.html';
+        // Verificar si tiene perfil completo (con username)
+        const profile = await getUserProfile(user.uid);
+        
+        if (isLoginPage && profile && profile.username) {
+            // Tiene perfil completo, redirigir a app
+            window.location.replace('./app.html');
         }
     } else {
         // Usuario no autenticado
         console.log('Usuario no autenticado');
         
         // Si estamos en app.html, redirigir a login
-        if (window.location.pathname.includes('app.html')) {
-            window.location.href = 'login.html';
+        if (isAppPage) {
+            window.location.replace('./login.html');
         }
     }
 });
@@ -558,14 +570,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Google login
     const googleLoginBtn = document.getElementById('google-login-btn');
+    const usernameModal = document.getElementById('username-modal');
+    const usernameForm = document.getElementById('username-form');
+    const googleUsernameInput = document.getElementById('google-username');
+    const googleUsernameError = document.getElementById('google-username-error');
+    const googleUserNameDisplay = document.getElementById('google-user-name');
+    
+    let currentGoogleUser = null; // Para guardar el usuario de Google temporalmente
+
     if (googleLoginBtn) {
         googleLoginBtn.addEventListener('click', async () => {
             const result = await loginWithGoogle();
             
             if (result.success) {
-                showMessage('¡Bienvenido! Redirigiendo...', 'success');
+                if (result.needsUsername) {
+                    // Mostrar modal para elegir username
+                    currentGoogleUser = result.user;
+                    googleUserNameDisplay.textContent = result.user.displayName || result.user.email;
+                    usernameModal.classList.remove('hidden');
+                    googleUsernameInput.focus();
+                } else {
+                    showMessage('¡Bienvenido! Redirigiendo...', 'success');
+                    window.location.replace('./app.html');
+                }
             } else {
                 showMessage(result.error, 'error');
+            }
+        });
+    }
+
+    // Validación de username en modal de Google
+    if (googleUsernameInput) {
+        googleUsernameInput.addEventListener('input', () => {
+            const username = googleUsernameInput.value.trim();
+            if (username.length > 0 && !validateUsername(username)) {
+                googleUsernameError.classList.remove('hidden');
+                if (username.length < 3) {
+                    googleUsernameError.textContent = '✗ Mínimo 3 caracteres';
+                } else if (username.length > 20) {
+                    googleUsernameError.textContent = '✗ Máximo 20 caracteres';
+                } else {
+                    googleUsernameError.textContent = '✗ Solo letras, números y guiones bajos (_)';
+                }
+            } else {
+                googleUsernameError.classList.add('hidden');
+            }
+        });
+    }
+
+    // Submit del formulario de username (Google)
+    if (usernameForm) {
+        usernameForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = googleUsernameInput.value.trim().toLowerCase();
+            
+            if (!validateUsername(username)) {
+                showMessage('Nombre de usuario no válido.', 'error');
+                return;
+            }
+            
+            setLoading('save-username-btn', true);
+            
+            const result = await createGoogleUserProfile(currentGoogleUser, username);
+            
+            if (result.success) {
+                showMessage('¡Registro completado! Redirigiendo...', 'success');
+                usernameModal.classList.add('hidden');
+                window.location.replace('./app.html');
+            } else {
+                showMessage(result.error, 'error');
+                setLoading('save-username-btn', false);
             }
         });
     }
@@ -619,4 +694,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Exportar funciones para uso en otras páginas
-export { auth, db, logout, getUserProfile, onAuthStateChanged };
+export { auth, db, logout, getUserProfile, onAuthStateChanged, createGoogleUserProfile, checkUsernameExists };

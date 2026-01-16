@@ -89,7 +89,7 @@
                         <div class="p-4 border-b border-gray-700">
                             <p id="dropdown-fullname" class="font-semibold text-white">Nombre Usuario</p>
                             <p id="dropdown-username" class="text-sm text-gray-400">@username</p>
-                            <p id="dropdown-email" class="text-xs text-gray-500 mt-1">email@ejemplo.com</p>
+                            <p id="dropdown-email" class="text-xs text-gray-500 mt-1"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e1848c80888da1848b848c918d8ecf828e8c">[email&#160;protected]</a></p>
                         </div>
                         <div class="py-2">
                             <a href="#" class="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
@@ -254,19 +254,25 @@
                 const email = user.email;
                 const initial = displayName.charAt(0).toUpperCase();
 
-                // Actualizar elementos
+                // Actualizar elementos del header
                 document.getElementById('user-name').textContent = displayName.split(' ')[0];
                 document.getElementById('user-avatar').textContent = initial;
+                
+                // Actualizar bienvenida
                 document.getElementById('welcome-name').textContent = displayName.split(' ')[0];
+                
+                // Actualizar dropdown
                 document.getElementById('dropdown-fullname').textContent = displayName;
                 document.getElementById('dropdown-username').textContent = '@' + username;
                 document.getElementById('dropdown-email').textContent = email;
 
-                // Si tiene foto de perfil
+                // Si tiene foto de perfil (Google)
                 if (user.photoURL) {
                     const avatar = document.getElementById('user-avatar');
                     avatar.innerHTML = `<img src="${user.photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
                 }
+
+                console.log('Usuario cargado:', { displayName, username, email });
 
             } catch (error) {
                 console.error('Error al cargar datos del usuario:', error);
@@ -280,7 +286,7 @@
                 loadingScreen.classList.add('hidden');
             } else {
                 // Redirigir a login si no hay usuario
-                window.location.href = 'login.html';
+                window.location.replace('./login.html');
             }
         });
 
@@ -301,7 +307,10 @@
             const result = await logout();
             if (result.success) {
                 showMessage('Sesión cerrada correctamente', 'success');
-                // La redirección se maneja en el observer
+                // Pequeño delay para mostrar el mensaje
+                setTimeout(() => {
+                    window.location.replace('./login.html');
+                }, 500);
             } else {
                 showMessage('Error al cerrar sesión', 'error');
             }
