@@ -45,44 +45,6 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-
-        /* Estilos para el avatar clickeable */
-        .avatar-container {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .avatar-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 9999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .avatar-container:hover .avatar-overlay {
-            opacity: 1;
-        }
-
-        /* Spinner para carga */
-        .spinner {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Modal backdrop */
-        .modal-backdrop {
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-        }
     </style>
 </head>
 <body class="text-white min-h-screen">
@@ -97,9 +59,6 @@
 
     <!-- Mensaje de notificación -->
     <div id="message-box" class="fixed top-5 right-5 z-50 p-4 rounded-lg shadow-xl hidden transition-all duration-300 max-w-sm"></div>
-
-    <!-- Input oculto para subir foto (NUEVO) -->
-    <input type="file" id="avatar-input" accept="image/*" class="hidden">
 
     <!-- Header -->
     <header class="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
@@ -120,8 +79,7 @@
                 <div class="relative">
                     <button id="user-menu-btn" class="flex items-center space-x-2 bg-gray-800 rounded-full pl-3 pr-1 py-1 hover:bg-gray-700 transition-colors">
                         <span id="user-name" class="text-sm font-medium hidden sm:block">Usuario</span>
-                        <!-- Avatar clickeable para cambiar foto -->
-                        <div id="user-avatar" class="avatar-container w-8 h-8 rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+                        <div id="user-avatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
                             U
                         </div>
                     </button>
@@ -129,35 +87,9 @@
                     <!-- Dropdown Menu -->
                     <div id="user-dropdown" class="absolute right-0 mt-2 w-56 bg-gray-800 rounded-xl shadow-xl border border-gray-700 hidden z-50">
                         <div class="p-4 border-b border-gray-700">
-                            <!-- Avatar grande en dropdown (clickeable) -->
-                            <div class="flex items-center gap-3 mb-3">
-                                <div id="dropdown-avatar" class="avatar-container w-12 h-12 rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden cursor-pointer" title="Cambiar foto de perfil">
-                                    <span id="dropdown-avatar-initial">U</span>
-                                    <div class="avatar-overlay">
-                                        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                                            <circle cx="12" cy="13" r="4"></circle>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p id="dropdown-fullname" class="font-semibold text-white truncate">Nombre Usuario</p>
-                                    <p id="dropdown-username" class="text-sm text-gray-400 truncate">@username</p>
-                                </div>
-                            </div>
-                            <p id="dropdown-email" class="text-xs text-gray-500 truncate">usuario@email.com</p>
-                            <!-- Botón para cambiar foto -->
-                            <button id="change-photo-btn" class="mt-3 w-full py-2 px-3 text-xs bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                                    <circle cx="12" cy="13" r="4"></circle>
-                                </svg>
-                                <span id="change-photo-text">Cambiar foto de perfil</span>
-                                <svg id="change-photo-spinner" class="spinner w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
-                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
-                                </svg>
-                            </button>
+                            <p id="dropdown-fullname" class="font-semibold text-white">Nombre Usuario</p>
+                            <p id="dropdown-username" class="text-sm text-gray-400">@username</p>
+                            <p id="dropdown-email" class="text-xs text-gray-500 mt-1"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e1848c80888da1848b848c918d8ecf828e8c">[email&#160;protected]</a></p>
                         </div>
                         <div class="py-2">
                             <a href="#" onclick="showComingSoon('Mi Perfil'); return false;" class="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
@@ -291,25 +223,9 @@
         </div>
     </footer>
 
-    <!-- Modal de confirmación para eliminar foto -->
-    <div id="delete-photo-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-gray-800 rounded-2xl p-6 max-w-sm w-full border border-gray-700">
-            <h3 class="text-xl font-bold mb-2">¿Eliminar foto de perfil?</h3>
-            <p class="text-gray-400 mb-6">Tu foto de perfil será eliminada y se mostrará tu inicial en su lugar.</p>
-            <div class="flex gap-3">
-                <button id="cancel-delete-photo" class="flex-1 py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-semibold transition-colors">
-                    Cancelar
-                </button>
-                <button id="confirm-delete-photo" class="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 rounded-xl font-semibold transition-colors">
-                    Eliminar
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- App Script -->
     <script type="module">
-        import { auth, db, logout, getUserProfile, onAuthStateChanged, uploadProfilePhoto, deleteProfilePhoto } from './js/auth.js';
+        import { auth, db, logout, getUserProfile, onAuthStateChanged } from './js/auth.js';
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
         // Elementos del DOM
@@ -318,19 +234,6 @@
         const userDropdown = document.getElementById('user-dropdown');
         const logoutBtn = document.getElementById('logout-btn');
         const messageBox = document.getElementById('message-box');
-        
-        // Elementos para foto de perfil (NUEVO)
-        const avatarInput = document.getElementById('avatar-input');
-        const changePhotoBtn = document.getElementById('change-photo-btn');
-        const changePhotoText = document.getElementById('change-photo-text');
-        const changePhotoSpinner = document.getElementById('change-photo-spinner');
-        const dropdownAvatar = document.getElementById('dropdown-avatar');
-        const deletePhotoModal = document.getElementById('delete-photo-modal');
-        const cancelDeletePhoto = document.getElementById('cancel-delete-photo');
-        const confirmDeletePhoto = document.getElementById('confirm-delete-photo');
-
-        // Variable global para guardar datos del usuario actual
-        let currentUserData = null;
 
         // Función para mostrar mensajes
         function showMessage(message, type = 'success') {
@@ -356,39 +259,6 @@
             showMessage(`🚧 ${feature}: ¡Próximamente! Estamos trabajando en esta funcionalidad.`, 'info');
         }
 
-        // Función para actualizar todos los avatares en la UI
-        function updateAllAvatars(photoURL, initial) {
-            const userAvatar = document.getElementById('user-avatar');
-            const dropdownAvatarEl = document.getElementById('dropdown-avatar');
-            const dropdownAvatarInitial = document.getElementById('dropdown-avatar-initial');
-
-            if (photoURL) {
-                // Mostrar imagen
-                userAvatar.innerHTML = `<img src="${photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
-                dropdownAvatarEl.innerHTML = `
-                    <img src="${photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar">
-                    <div class="avatar-overlay">
-                        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                            <circle cx="12" cy="13" r="4"></circle>
-                        </svg>
-                    </div>
-                `;
-            } else {
-                // Mostrar inicial
-                userAvatar.innerHTML = initial;
-                dropdownAvatarEl.innerHTML = `
-                    <span id="dropdown-avatar-initial">${initial}</span>
-                    <div class="avatar-overlay">
-                        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                            <circle cx="12" cy="13" r="4"></circle>
-                        </svg>
-                    </div>
-                `;
-            }
-        }
-
         // Actualizar UI con datos del usuario
         async function updateUserUI(user) {
             try {
@@ -396,20 +266,15 @@
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
                 let userData = userSnap.exists() ? userSnap.data() : {};
-                
-                // Guardar datos globalmente
-                currentUserData = userData;
 
                 const displayName = userData.nombreCompleto || user.displayName || 'Usuario';
                 const username = userData.username || 'usuario';
                 const email = user.email;
                 const initial = displayName.charAt(0).toUpperCase();
-                
-                // Usar photoURL de Firestore primero, luego de Auth
-                const photoURL = userData.photoURL || user.photoURL || '';
 
                 // Actualizar elementos del header
                 document.getElementById('user-name').textContent = displayName.split(' ')[0];
+                document.getElementById('user-avatar').textContent = initial;
                 
                 // Actualizar bienvenida
                 document.getElementById('welcome-name').textContent = displayName.split(' ')[0];
@@ -419,100 +284,18 @@
                 document.getElementById('dropdown-username').textContent = '@' + username;
                 document.getElementById('dropdown-email').textContent = email;
 
-                // Actualizar avatares
-                updateAllAvatars(photoURL, initial);
+                // Si tiene foto de perfil (Google)
+                if (user.photoURL) {
+                    const avatar = document.getElementById('user-avatar');
+                    avatar.innerHTML = `<img src="${user.photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
+                }
 
-                console.log('Usuario cargado:', { displayName, username, email, photoURL });
+                console.log('Usuario cargado:', { displayName, username, email });
 
             } catch (error) {
                 console.error('Error al cargar datos del usuario:', error);
             }
         }
-
-        // ========== LÓGICA DE SUBIDA DE FOTO (NUEVO) ==========
-
-        // Abrir selector de archivos al hacer clic en el botón o avatar
-        changePhotoBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Evitar que se cierre el dropdown
-            avatarInput.click();
-        });
-
-        dropdownAvatar.addEventListener('click', (e) => {
-            e.stopPropagation();
-            avatarInput.click();
-        });
-
-        // Manejar selección de archivo
-        avatarInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const user = auth.currentUser;
-            if (!user) {
-                showMessage('Debes estar autenticado para cambiar tu foto.', 'error');
-                return;
-            }
-
-            // Mostrar loading
-            changePhotoText.textContent = 'Subiendo...';
-            changePhotoSpinner.classList.remove('hidden');
-            changePhotoBtn.disabled = true;
-
-            // Subir foto
-            const result = await uploadProfilePhoto(file, user.uid);
-
-            // Ocultar loading
-            changePhotoText.textContent = 'Cambiar foto de perfil';
-            changePhotoSpinner.classList.add('hidden');
-            changePhotoBtn.disabled = false;
-
-            if (result.success) {
-                showMessage('¡Foto de perfil actualizada!', 'success');
-                // Actualizar UI con la nueva foto
-                const displayName = currentUserData?.nombreCompleto || user.displayName || 'Usuario';
-                const initial = displayName.charAt(0).toUpperCase();
-                updateAllAvatars(result.downloadURL, initial);
-            } else {
-                showMessage(result.error, 'error');
-            }
-
-            // Limpiar input para permitir seleccionar el mismo archivo de nuevo
-            avatarInput.value = '';
-        });
-
-        // Modal para eliminar foto (por si quieres agregarlo en el futuro)
-        // Puedes añadir un menú contextual o botón adicional para eliminar
-
-        cancelDeletePhoto.addEventListener('click', () => {
-            deletePhotoModal.classList.add('hidden');
-        });
-
-        confirmDeletePhoto.addEventListener('click', async () => {
-            const user = auth.currentUser;
-            if (!user) return;
-
-            deletePhotoModal.classList.add('hidden');
-
-            const result = await deleteProfilePhoto(user.uid);
-
-            if (result.success) {
-                showMessage('Foto de perfil eliminada.', 'success');
-                const displayName = currentUserData?.nombreCompleto || user.displayName || 'Usuario';
-                const initial = displayName.charAt(0).toUpperCase();
-                updateAllAvatars('', initial);
-            } else {
-                showMessage(result.error, 'error');
-            }
-        });
-
-        // Cerrar modal al hacer clic fuera
-        deletePhotoModal.addEventListener('click', (e) => {
-            if (e.target === deletePhotoModal) {
-                deletePhotoModal.classList.add('hidden');
-            }
-        });
-
-        // ========== FIN LÓGICA DE SUBIDA DE FOTO ==========
 
         // Observer de autenticación
         onAuthStateChanged(auth, async (user) => {
