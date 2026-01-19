@@ -24,18 +24,26 @@ import {
     query,
     where,
     collection,
-    getDocs
+    getDocs,
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+// ========== NUEVO: IMPORTAR FIREBASE STORAGE ==========
+import { 
+    getStorage, 
+    ref, 
+    uploadBytes, 
+    getDownloadURL,
+    deleteObject
+} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
 
-// Tu configuración de Firebase (la misma que ya tienes)
+// ========== NUEVA CONFIGURACIÓN DE FIREBASE (US-CENTRAL) ==========
 const firebaseConfig = {
-    apiKey: "AIzaSyAT22wMZyUIfoYLtCF7GCyjn41QNF5dEG0",
-    authDomain: "reelio-3705b.firebaseapp.com",
-    projectId: "reelio-3705b",
-    storageBucket: "reelio-3705b.firebasestorage.app",
-    messagingSenderId: "579566765924",
-    appId: "1:579566765924:web:c73b8bddbc5ee4ba6b5c71",
-    measurementId: "G-7J6CQZVMPM"
+    apiKey: "AIzaSyDqR2i4e0EXtt3FiVoM07s61SppEDet86Q",
+    authDomain: "reelioapp.firebaseapp.com",
+    projectId: "reelioapp",
+    storageBucket: "reelioapp.firebasestorage.app",
+    messagingSenderId: "710301897932",
+    appId: "1:710301897932:web:70826a63ca43fab1a8de69"
 };
 
 // Inicializar Firebase
@@ -43,12 +51,15 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app); // ← NUEVO: Inicializar Storage
 const googleProvider = new GoogleAuthProvider();
 
 // ========== FUNCIONES DE UI ==========
 const messageBox = document.getElementById('message-box');
 
 function showMessage(message, type = 'success') {
+    if (!messageBox) return;
+    
     messageBox.textContent = message;
     messageBox.classList.remove('hidden', 'opacity-0', 'bg-red-600/20', 'text-red-400', 'bg-green-600/20', 'text-green-400', 'bg-yellow-600/20', 'text-yellow-400');
     messageBox.classList.add('opacity-100');
@@ -157,6 +168,171 @@ async function updateLastAccess(uid) {
     const userRef = doc(db, "users", uid);
     await setDoc(userRef, { ultimoAcceso: serverTimestamp() }, { merge: true });
 }
+
+// ========== FUNCIONES DE STORAGE (NUEVO) ==========
+
+/**
+ * Comprime una imagen antes de subirla
+ * @param {File} file - El archivo de imagen original
+ * @param {number} maxWidth - Ancho máximo de la imagen
+ * @param {number} quality - Calidad de la compresión (0-1)
+ * @returns {Promise<Blob>} - Blob de la imagen comprimida
+ */
+async function compressImage(file, maxWidth = 500, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Calcular nuevo tamaño manteniendo proporción
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject(new Error('Error al comprimir la imagen'));
+                        }
+                    },
+                    'image/jpeg',
+                    quality
+                );
+            };
+            img.onerror = () => reject(new Error('Error al cargar la imagen'));
+        };
+        reader.onerror = () => reject(new Error('Error al leer el archivo'));
+    });
+}
+
+/**
+ * Sube la foto de perfil de un usuario a Firebase Storage
+ * @param {File} file - El archivo de imagen a subir
+ * @param {string} uid - El UID del usuario
+ * @returns {Promise<{success: boolean, downloadURL?: string, error?: string}>}
+ */
+async function uploadProfilePhoto(file, uid) {
+    try {
+        // Validar que sea una imagen
+        if (!file.type.startsWith('image/')) {
+            return { success: false, error: 'El archivo debe ser una imagen.' };
+        }
+
+        // Validar tamaño máximo (5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            return { success: false, error: 'La imagen no debe superar los 5MB.' };
+        }
+
+        // Comprimir la imagen
+        let imageToUpload;
+        try {
+            imageToUpload = await compressImage(file, 500, 0.8);
+        } catch (compressError) {
+            console.warn('No se pudo comprimir, subiendo original:', compressError);
+            imageToUpload = file;
+        }
+
+        // Crear referencia en Storage: usuarios/{uid}/avatar.jpg
+        const storageRef = ref(storage, `usuarios/${uid}/avatar.jpg`);
+
+        // Subir el archivo
+        const snapshot = await uploadBytes(storageRef, imageToUpload, {
+            contentType: 'image/jpeg'
+        });
+
+        // Obtener la URL de descarga
+        const downloadURL = await getDownloadURL(snapshot.ref);
+
+        // Actualizar el documento del usuario en Firestore
+        const userRef = doc(db, "users", uid);
+        await updateDoc(userRef, {
+            photoURL: downloadURL,
+            photoUpdatedAt: serverTimestamp()
+        });
+
+        // También actualizar el perfil de Auth (opcional pero recomendado)
+        if (auth.currentUser) {
+            await updateProfile(auth.currentUser, {
+                photoURL: downloadURL
+            });
+        }
+
+        return { success: true, downloadURL };
+
+    } catch (error) {
+        console.error('Error al subir foto de perfil:', error);
+        
+        // Mensajes de error específicos
+        let errorMessage = 'Error al subir la imagen.';
+        if (error.code === 'storage/unauthorized') {
+            errorMessage = 'No tienes permiso para subir archivos.';
+        } else if (error.code === 'storage/canceled') {
+            errorMessage = 'Subida cancelada.';
+        } else if (error.code === 'storage/retry-limit-exceeded') {
+            errorMessage = 'Error de conexión. Inténtalo de nuevo.';
+        }
+        
+        return { success: false, error: errorMessage };
+    }
+}
+
+/**
+ * Elimina la foto de perfil actual del usuario
+ * @param {string} uid - El UID del usuario
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function deleteProfilePhoto(uid) {
+    try {
+        // Referencia al archivo
+        const storageRef = ref(storage, `usuarios/${uid}/avatar.jpg`);
+        
+        // Intentar eliminar
+        await deleteObject(storageRef);
+        
+        // Actualizar Firestore
+        const userRef = doc(db, "users", uid);
+        await updateDoc(userRef, {
+            photoURL: '',
+            photoUpdatedAt: serverTimestamp()
+        });
+
+        // Actualizar Auth
+        if (auth.currentUser) {
+            await updateProfile(auth.currentUser, {
+                photoURL: ''
+            });
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error al eliminar foto:', error);
+        
+        // Si el archivo no existe, no es un error real
+        if (error.code === 'storage/object-not-found') {
+            return { success: true };
+        }
+        
+        return { success: false, error: 'Error al eliminar la foto.' };
+    }
+}
+
+// ========== FIN FUNCIONES DE STORAGE ==========
 
 // Registro con email y contraseña
 async function registerWithEmail(email, password, fullname, username) {
@@ -296,7 +472,7 @@ function getErrorMessage(error) {
 // ========== OBSERVER DE AUTENTICACIÓN ==========
 onAuthStateChanged(auth, async (user) => {
     const currentPath = window.location.pathname;
-    const isLoginPage = currentPath.includes('login.html') || currentPath.endsWith('/') || currentPath === '';
+    const isLoginPage = currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath === '';
     const isAppPage = currentPath.includes('app.html');
     
     if (user) {
@@ -316,7 +492,7 @@ onAuthStateChanged(auth, async (user) => {
         
         // Si estamos en app.html, redirigir a login
         if (isAppPage) {
-            window.location.replace('./login.html');
+            window.location.replace('./index.html');
         }
     }
 });
@@ -694,4 +870,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Exportar funciones para uso en otras páginas
-export { auth, db, logout, getUserProfile, onAuthStateChanged, createGoogleUserProfile, checkUsernameExists };
+export { 
+    auth, 
+    db, 
+    storage,
+    logout, 
+    getUserProfile, 
+    onAuthStateChanged, 
+    createGoogleUserProfile, 
+    checkUsernameExists,
+    uploadProfilePhoto,
+    deleteProfilePhoto
+};
