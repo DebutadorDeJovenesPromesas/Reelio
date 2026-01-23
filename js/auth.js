@@ -25,7 +25,8 @@ import {
     where,
     collection,
     getDocs,
-    updateDoc
+    updateDoc,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 // ========== NUEVO: IMPORTAR FIREBASE STORAGE ==========
 import { 
@@ -33,7 +34,8 @@ import {
     ref, 
     uploadBytes, 
     getDownloadURL,
-    deleteObject
+    deleteObject,
+    listAll
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
 
 // ========== CONFIGURACIÓN DE FIREBASE ==========
@@ -335,6 +337,96 @@ async function deleteProfilePhoto(uid) {
 
 // ========== FIN FUNCIONES DE STORAGE ==========
 
+// ========== FUNCIÓN PARA ELIMINAR TODOS LOS DATOS DEL USUARIO ==========
+/**
+ * Elimina todos los datos del usuario de Firestore y Storage
+ * Esta función debe llamarse antes de eliminar el usuario de Authentication
+ * o puede ser llamada por una Cloud Function cuando se elimina un usuario
+ * @param {string} uid - El UID del usuario a eliminar
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function deleteAllUserData(uid) {
+    try {
+        console.log('Iniciando eliminación de datos del usuario:', uid);
+        
+        // 1. Eliminar todas las imágenes del usuario en Storage
+        try {
+            const userStorageRef = ref(storage, `usuarios/${uid}`);
+            const filesList = await listAll(userStorageRef);
+            
+            // Eliminar cada archivo encontrado
+            const deletePromises = filesList.items.map(item => deleteObject(item));
+            await Promise.all(deletePromises);
+            
+            console.log(`Eliminados ${filesList.items.length} archivos de Storage`);
+        } catch (storageError) {
+            // Si la carpeta no existe, no es un error crítico
+            if (storageError.code !== 'storage/object-not-found') {
+                console.warn('Error al eliminar archivos de Storage:', storageError);
+            }
+        }
+        
+        // 2. Eliminar el documento del usuario en Firestore
+        try {
+            const userRef = doc(db, "users", uid);
+            await deleteDoc(userRef);
+            console.log('Documento de usuario eliminado de Firestore');
+        } catch (firestoreError) {
+            console.error('Error al eliminar documento de Firestore:', firestoreError);
+            throw firestoreError;
+        }
+        
+        return { success: true };
+        
+    } catch (error) {
+        console.error('Error al eliminar datos del usuario:', error);
+        return { success: false, error: 'Error al eliminar los datos del usuario.' };
+    }
+}
+
+/**
+ * Elimina la cuenta del usuario actual completamente
+ * Elimina datos de Firestore, Storage y Authentication
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function deleteUserAccount() {
+    try {
+        const user = auth.currentUser;
+        
+        if (!user) {
+            return { success: false, error: 'No hay usuario autenticado.' };
+        }
+        
+        const uid = user.uid;
+        
+        // 1. Eliminar todos los datos del usuario (Firestore y Storage)
+        const deleteDataResult = await deleteAllUserData(uid);
+        
+        if (!deleteDataResult.success) {
+            console.warn('Advertencia: No se pudieron eliminar todos los datos:', deleteDataResult.error);
+        }
+        
+        // 2. Eliminar el usuario de Authentication
+        // Nota: Esta operación puede requerir reautenticación reciente
+        await user.delete();
+        
+        console.log('Cuenta de usuario eliminada completamente');
+        return { success: true };
+        
+    } catch (error) {
+        console.error('Error al eliminar cuenta:', error);
+        
+        let errorMessage = 'Error al eliminar la cuenta.';
+        if (error.code === 'auth/requires-recent-login') {
+            errorMessage = 'Por seguridad, necesitas volver a iniciar sesión antes de eliminar tu cuenta.';
+        }
+        
+        return { success: false, error: errorMessage };
+    }
+}
+
+// ========== FIN FUNCIÓN ELIMINAR DATOS ==========
+
 // Registro con email y contraseña
 async function registerWithEmail(email, password, fullname, username) {
     try {
@@ -526,15 +618,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Validación de username en tiempo real
+    // Validación de username en tiempo real con verificación en Firestore
     const usernameInput = document.getElementById('reg-username');
     const usernameHint = document.getElementById('username-hint');
     const usernameError = document.getElementById('username-error');
     const usernameSuccess = document.getElementById('username-success');
+    
+    let usernameCheckTimeout = null;
 
     if (usernameInput) {
-        usernameInput.addEventListener('input', () => {
+        usernameInput.addEventListener('input', async () => {
             const username = usernameInput.value.trim();
+            
+            // Limpiar timeout anterior para debounce
+            if (usernameCheckTimeout) {
+                clearTimeout(usernameCheckTimeout);
+            }
             
             if (username.length === 0) {
                 usernameHint.classList.remove('hidden');
@@ -554,9 +653,142 @@ document.addEventListener('DOMContentLoaded', () => {
                     usernameError.textContent = '✗ Solo letras, números y guiones bajos (_)';
                 }
             } else {
+                // Username válido localmente, verificar en Firestore con debounce
                 usernameHint.classList.add('hidden');
                 usernameError.classList.add('hidden');
-                usernameSuccess.classList.remove('hidden');
+                usernameSuccess.classList.add('hidden');
+                
+                // Mostrar indicador de carga
+                usernameHint.textContent = 'Verificando disponibilidad...';
+                usernameHint.classList.remove('hidden');
+                
+                // Debounce de 500ms antes de verificar en Firestore
+                usernameCheckTimeout = setTimeout(async () => {
+                    try {
+                        const exists = await checkUsernameExists(username);
+                        
+                        usernameHint.classList.add('hidden');
+                        
+                        if (exists) {
+                            usernameError.textContent = '✗ Este nombre de usuario ya está en uso';
+                            usernameError.classList.remove('hidden');
+                            usernameSuccess.classList.add('hidden');
+                        } else {
+                            usernameSuccess.textContent = '✓ Nombre de usuario disponible';
+                            usernameSuccess.classList.remove('hidden');
+                            usernameError.classList.add('hidden');
+                        }
+                    } catch (error) {
+                        console.error('Error verificando username:', error);
+                        usernameHint.textContent = '3-20 caracteres. Solo letras, números y guiones bajos (_)';
+                        usernameHint.classList.remove('hidden');
+                    }
+                }, 500);
+            }
+        });
+    }
+
+    // Validación de username en modal de Google en tiempo real
+    if (googleUsernameInput) {
+        let googleUsernameCheckTimeout = null;
+        
+        googleUsernameInput.addEventListener('input', async () => {
+            const username = googleUsernameInput.value.trim();
+            
+            // Limpiar timeout anterior
+            if (googleUsernameCheckTimeout) {
+                clearTimeout(googleUsernameCheckTimeout);
+            }
+            
+            // Ocultar todos los mensajes primero
+            if (googleUsernameError) googleUsernameError.classList.add('hidden');
+            if (googleUsernameSuccess) googleUsernameSuccess.classList.add('hidden');
+            if (googleUsernameHint) googleUsernameHint.classList.remove('hidden');
+            
+            if (username.length === 0) {
+                // Campo vacío, mostrar hint
+                if (googleUsernameHint) {
+                    googleUsernameHint.innerHTML = `
+                        <svg class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        3-20 caracteres. Solo letras, números y guiones bajos (_)
+                    `;
+                }
+                return;
+            }
+            
+            if (!validateUsername(username)) {
+                // Username inválido
+                if (googleUsernameHint) googleUsernameHint.classList.add('hidden');
+                if (googleUsernameError) {
+                    googleUsernameError.classList.remove('hidden');
+                    const errorText = googleUsernameError.querySelector('span');
+                    if (errorText) {
+                        if (username.length < 3) {
+                            errorText.textContent = 'Mínimo 3 caracteres';
+                        } else if (username.length > 20) {
+                            errorText.textContent = 'Máximo 20 caracteres';
+                        } else {
+                            errorText.textContent = 'Solo letras, números y guiones bajos (_)';
+                        }
+                    }
+                }
+            } else {
+                // Username válido localmente, verificar en Firestore
+                if (googleUsernameHint) {
+                    googleUsernameHint.innerHTML = `
+                        <svg class="w-4 h-4 inline mr-1 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+                            <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+                        </svg>
+                        Verificando disponibilidad...
+                    `;
+                }
+                
+                // Debounce de 500ms
+                googleUsernameCheckTimeout = setTimeout(async () => {
+                    try {
+                        const exists = await checkUsernameExists(username);
+                        
+                        if (googleUsernameHint) googleUsernameHint.classList.add('hidden');
+                        
+                        if (exists) {
+                            if (googleUsernameError) {
+                                googleUsernameError.classList.remove('hidden');
+                                const errorText = googleUsernameError.querySelector('span');
+                                if (errorText) {
+                                    errorText.textContent = 'Este nombre de usuario ya está en uso';
+                                }
+                            }
+                            if (googleUsernameSuccess) googleUsernameSuccess.classList.add('hidden');
+                        } else {
+                            if (googleUsernameSuccess) {
+                                googleUsernameSuccess.classList.remove('hidden');
+                                const successText = googleUsernameSuccess.querySelector('span');
+                                if (successText) {
+                                    successText.textContent = '¡Nombre de usuario disponible!';
+                                }
+                            }
+                            if (googleUsernameError) googleUsernameError.classList.add('hidden');
+                        }
+                    } catch (error) {
+                        console.error('Error verificando username:', error);
+                        if (googleUsernameHint) {
+                            googleUsernameHint.innerHTML = `
+                                <svg class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                3-20 caracteres. Solo letras, números y guiones bajos (_)
+                            `;
+                            googleUsernameHint.classList.remove('hidden');
+                        }
+                    }
+                }, 500);
             }
         });
     }
@@ -737,7 +969,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.success) {
                 showMessage('¡Cuenta creada exitosamente! Redirigiendo...', 'success');
-                // La redirección se maneja en onAuthStateChanged
+                // Redirigir directamente a app.html
+                setTimeout(() => {
+                    window.location.replace('./app.html');
+                }, 1000);
             } else {
                 showMessage(result.error, 'error');
                 setLoading('register-btn', false);
@@ -791,45 +1026,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 showMessage(result.error, 'error');
-            }
-        });
-    }
-
-    // Validación de username en modal de Google con feedback visual mejorado
-    if (googleUsernameInput) {
-        googleUsernameInput.addEventListener('input', () => {
-            const username = googleUsernameInput.value.trim();
-            
-            // Ocultar todos los mensajes primero
-            if (googleUsernameError) googleUsernameError.classList.add('hidden');
-            if (googleUsernameSuccess) googleUsernameSuccess.classList.add('hidden');
-            if (googleUsernameHint) googleUsernameHint.classList.remove('hidden');
-            
-            if (username.length === 0) {
-                // Campo vacío, mostrar hint
-                return;
-            }
-            
-            if (!validateUsername(username)) {
-                // Username inválido
-                if (googleUsernameHint) googleUsernameHint.classList.add('hidden');
-                if (googleUsernameError) {
-                    googleUsernameError.classList.remove('hidden');
-                    const errorText = googleUsernameError.querySelector('span');
-                    if (errorText) {
-                        if (username.length < 3) {
-                            errorText.textContent = 'Mínimo 3 caracteres';
-                        } else if (username.length > 20) {
-                            errorText.textContent = 'Máximo 20 caracteres';
-                        } else {
-                            errorText.textContent = 'Solo letras, números y guiones bajos (_)';
-                        }
-                    }
-                }
-            } else {
-                // Username válido
-                if (googleUsernameHint) googleUsernameHint.classList.add('hidden');
-                if (googleUsernameSuccess) googleUsernameSuccess.classList.remove('hidden');
             }
         });
     }
@@ -920,5 +1116,7 @@ export {
     createGoogleUserProfile, 
     checkUsernameExists,
     uploadProfilePhoto,
-    deleteProfilePhoto
+    deleteProfilePhoto,
+    deleteAllUserData,
+    deleteUserAccount
 };

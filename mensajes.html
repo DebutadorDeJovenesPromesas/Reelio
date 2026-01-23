@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reelio - Mensajes</title>
+    <link rel="icon" type="image/png" href="images/LogoMiniPrueba.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+        }
+        
+        .gradient-text {
+            background-image: linear-gradient(90deg, #06b6d4, #f43f8a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .pulse-slow {
+            animation: pulse 3s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col">
+    
+    <!-- Header -->
+    <header class="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+            <div class="flex items-center gap-4">
+                <!-- Botón Volver -->
+                <a href="app.html" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    <span class="hidden sm:inline">Volver</span>
+                </a>
+                
+                <div class="h-6 w-px bg-gray-700"></div>
+                
+                <div class="flex items-center gap-3">
+                    <img src="images/LogoMiniPrueba.png" alt="Reelio" class="w-8 h-8">
+                    <h1 class="text-xl font-extrabold tracking-wider">Reelio</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 px-3 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-full">
+                <div class="w-2 h-2 bg-yellow-500 rounded-full pulse-slow"></div>
+                <span class="text-yellow-400 text-xs font-medium">En desarrollo</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center p-4">
+        <div class="text-center max-w-lg">
+            <!-- Icono animado -->
+            <div class="floating mb-8">
+                <div class="w-32 h-32 mx-auto bg-gradient-to-br from-yellow-500/20 to-fuchsia-500/20 rounded-3xl flex items-center justify-center border border-gray-700">
+                    <svg class="w-16 h-16 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        <path d="M8 10h.01M12 10h.01M16 10h.01"></path>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Título -->
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                <span class="gradient-text">Mensajes</span>
+            </h1>
+            
+            <!-- Descripción -->
+            <p class="text-gray-400 text-lg mb-8 leading-relaxed">
+                ¡Pronto disponible! Podrás chatear con otros usuarios, 
+                enviar mensajes privados y mantenerte conectado con tu comunidad.
+            </p>
+            
+            <!-- Características próximas -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <div class="p-4 bg-gray-800/50 rounded-xl border border-gray-700">
+                    <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-sm text-gray-300">Chat privado</p>
+                </div>
+                <div class="p-4 bg-gray-800/50 rounded-xl border border-gray-700">
+                    <div class="w-10 h-10 bg-fuchsia-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-5 h-5 text-fuchsia-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                    </div>
+                    <p class="text-sm text-gray-300">Envía fotos</p>
+                </div>
+                <div class="p-4 bg-gray-800/50 rounded-xl border border-gray-700">
+                    <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </div>
+                    <p class="text-sm text-gray-300">Notificaciones</p>
+                </div>
+            </div>
+            
+            <!-- Botón de regreso -->
+            <a href="app.html" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-fuchsia-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500 rounded-full font-semibold transition-all">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Volver a Inicio
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 py-4">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-500 text-sm">© 2025 Reelio. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
