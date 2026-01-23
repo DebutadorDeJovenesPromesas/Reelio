@@ -49,21 +49,30 @@
 </head>
 <body class="text-white min-h-screen">
     
-    <!-- Loading Screen -->
+    <!-- Loading Screen con logo -->
     <div id="loading-screen" class="loading-screen">
         <div class="text-center">
-            <h1 class="text-5xl font-extrabold tracking-wider mb-4 pulse">Reelio</h1>
-            <p class="text-gray-400">Cargando...</p>
+            <div class="mb-6">
+                <img src="images/LogoMini.png" alt="Reelio" class="w-24 h-24 mx-auto pulse">
+            </div>
+            <h1 class="text-5xl font-extrabold tracking-wider mb-4">Reelio</h1>
+            <p class="text-gray-400">Preparando tu experiencia...</p>
+            <div class="mt-6 flex justify-center gap-1">
+                <div class="w-2 h-2 bg-fuchsia-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                <div class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                <div class="w-2 h-2 bg-fuchsia-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+            </div>
         </div>
     </div>
 
     <!-- Mensaje de notificación -->
     <div id="message-box" class="fixed top-5 right-5 z-50 p-4 rounded-lg shadow-xl hidden transition-all duration-300 max-w-sm"></div>
 
-    <!-- Header -->
+    <!-- Header con logo -->
     <header class="sticky top-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-            <div class="flex items-center">
+            <div class="flex items-center gap-3">
+                <img src="images/LogoMini.png" alt="Reelio" class="w-10 h-10">
                 <h1 class="text-2xl font-extrabold tracking-wider">Reelio</h1>
             </div>
             
@@ -134,13 +143,54 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- Welcome Section -->
+        <!-- Welcome Section mejorada -->
         <section class="mb-12">
-            <div class="bg-gradient-to-r from-fuchsia-900/50 to-cyan-900/50 rounded-3xl p-8 border border-gray-700">
-                <h2 class="text-3xl font-bold mb-2">
-                    ¡Bienvenido, <span id="welcome-name" class="gradient-text">Usuario</span>! 🎉
-                </h2>
-                <p class="text-gray-300">Esta es la página principal de Reelio. Aquí podrás descubrir eventos, unirte a grupos y conectar con otros usuarios.</p>
+            <div class="bg-gradient-to-r from-fuchsia-900/50 to-cyan-900/50 rounded-3xl p-8 border border-gray-700 relative overflow-hidden">
+                <!-- Decoración de fondo -->
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-fuchsia-500/10 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                    <!-- Avatar del usuario -->
+                    <div id="welcome-avatar" class="w-20 h-20 rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-500 flex items-center justify-center text-white font-bold text-3xl flex-shrink-0 overflow-hidden ring-4 ring-white/10">
+                        U
+                    </div>
+                    
+                    <div class="flex-1 text-center md:text-left">
+                        <h2 class="text-3xl md:text-4xl font-bold mb-2">
+                            ¡Bienvenido, <span id="welcome-name" class="gradient-text">Usuario</span>! 🎉
+                        </h2>
+                        <p class="text-gray-300 mb-4">Esta es tu página principal de Reelio. Aquí podrás descubrir eventos, unirte a grupos y conectar con otros usuarios.</p>
+                        
+                        <!-- Quick actions -->
+                        <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                            <button onclick="showComingSoon('Explorar Eventos'); return false;" class="inline-flex items-center gap-2 px-4 py-2 bg-fuchsia-500/20 hover:bg-fuchsia-500/30 border border-fuchsia-500/30 rounded-full text-fuchsia-300 text-sm font-medium transition-all">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                Explorar Eventos
+                            </button>
+                            <button onclick="showComingSoon('Buscar Grupos'); return false;" class="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-full text-cyan-300 text-sm font-medium transition-all">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                Buscar Grupos
+                            </button>
+                            <a href="info.html" class="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-gray-300 text-sm font-medium transition-all">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                Más info
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -428,11 +478,24 @@
 
         // Función para actualizar todos los avatares en la página
         function updateAllAvatars(photoURL, initial) {
+            // Avatar del header
             const userAvatar = document.getElementById('user-avatar');
-            if (photoURL) {
-                userAvatar.innerHTML = `<img src="${photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
-            } else {
-                userAvatar.innerHTML = initial || 'U';
+            if (userAvatar) {
+                if (photoURL) {
+                    userAvatar.innerHTML = `<img src="${photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
+                } else {
+                    userAvatar.innerHTML = initial || 'U';
+                }
+            }
+            
+            // Avatar de la sección de bienvenida
+            const welcomeAvatar = document.getElementById('welcome-avatar');
+            if (welcomeAvatar) {
+                if (photoURL) {
+                    welcomeAvatar.innerHTML = `<img src="${photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
+                } else {
+                    welcomeAvatar.innerHTML = initial || 'U';
+                }
             }
         }
 
@@ -599,7 +662,7 @@
                 // Actualizar elementos del header
                 document.getElementById('user-name').textContent = displayName.split(' ')[0];
                 
-                // Actualizar avatar
+                // Actualizar avatar del header
                 const userAvatar = document.getElementById('user-avatar');
                 if (photoURL) {
                     userAvatar.innerHTML = `<img src="${photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
@@ -607,8 +670,18 @@
                     userAvatar.textContent = initial;
                 }
                 
-                // Actualizar bienvenida
+                // Actualizar sección de bienvenida
                 document.getElementById('welcome-name').textContent = displayName.split(' ')[0];
+                
+                // Actualizar avatar de bienvenida
+                const welcomeAvatar = document.getElementById('welcome-avatar');
+                if (welcomeAvatar) {
+                    if (photoURL) {
+                        welcomeAvatar.innerHTML = `<img src="${photoURL}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
+                    } else {
+                        welcomeAvatar.textContent = initial;
+                    }
+                }
                 
                 // Actualizar dropdown
                 document.getElementById('dropdown-fullname').textContent = displayName;

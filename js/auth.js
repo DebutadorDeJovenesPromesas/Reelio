@@ -751,7 +751,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const usernameForm = document.getElementById('username-form');
     const googleUsernameInput = document.getElementById('google-username');
     const googleUsernameError = document.getElementById('google-username-error');
+    const googleUsernameSuccess = document.getElementById('google-username-success');
+    const googleUsernameHint = document.getElementById('google-username-hint');
     const googleUserNameDisplay = document.getElementById('google-user-name');
+    const googleUserEmailDisplay = document.getElementById('google-user-email');
+    const googleUserPhotoDisplay = document.getElementById('google-user-photo');
     
     let currentGoogleUser = null; // Para guardar el usuario de Google temporalmente
 
@@ -763,7 +767,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (result.needsUsername) {
                     // Mostrar modal para elegir username
                     currentGoogleUser = result.user;
-                    googleUserNameDisplay.textContent = result.user.displayName || result.user.email;
+                    
+                    // Mostrar nombre del usuario
+                    const displayName = result.user.displayName || 'Usuario';
+                    const firstName = displayName.split(' ')[0];
+                    googleUserNameDisplay.textContent = firstName;
+                    
+                    // Mostrar email
+                    if (googleUserEmailDisplay) {
+                        googleUserEmailDisplay.textContent = result.user.email || '';
+                    }
+                    
+                    // Mostrar foto de Google si existe
+                    if (googleUserPhotoDisplay && result.user.photoURL) {
+                        googleUserPhotoDisplay.innerHTML = `<img src="${result.user.photoURL}" class="w-full h-full rounded-full object-cover" alt="Foto de perfil">`;
+                    }
+                    
                     usernameModal.classList.remove('hidden');
                     googleUsernameInput.focus();
                 } else {
@@ -776,21 +795,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Validación de username en modal de Google
+    // Validación de username en modal de Google con feedback visual mejorado
     if (googleUsernameInput) {
         googleUsernameInput.addEventListener('input', () => {
             const username = googleUsernameInput.value.trim();
-            if (username.length > 0 && !validateUsername(username)) {
-                googleUsernameError.classList.remove('hidden');
-                if (username.length < 3) {
-                    googleUsernameError.textContent = '✗ Mínimo 3 caracteres';
-                } else if (username.length > 20) {
-                    googleUsernameError.textContent = '✗ Máximo 20 caracteres';
-                } else {
-                    googleUsernameError.textContent = '✗ Solo letras, números y guiones bajos (_)';
+            
+            // Ocultar todos los mensajes primero
+            if (googleUsernameError) googleUsernameError.classList.add('hidden');
+            if (googleUsernameSuccess) googleUsernameSuccess.classList.add('hidden');
+            if (googleUsernameHint) googleUsernameHint.classList.remove('hidden');
+            
+            if (username.length === 0) {
+                // Campo vacío, mostrar hint
+                return;
+            }
+            
+            if (!validateUsername(username)) {
+                // Username inválido
+                if (googleUsernameHint) googleUsernameHint.classList.add('hidden');
+                if (googleUsernameError) {
+                    googleUsernameError.classList.remove('hidden');
+                    const errorText = googleUsernameError.querySelector('span');
+                    if (errorText) {
+                        if (username.length < 3) {
+                            errorText.textContent = 'Mínimo 3 caracteres';
+                        } else if (username.length > 20) {
+                            errorText.textContent = 'Máximo 20 caracteres';
+                        } else {
+                            errorText.textContent = 'Solo letras, números y guiones bajos (_)';
+                        }
+                    }
                 }
             } else {
-                googleUsernameError.classList.add('hidden');
+                // Username válido
+                if (googleUsernameHint) googleUsernameHint.classList.add('hidden');
+                if (googleUsernameSuccess) googleUsernameSuccess.classList.remove('hidden');
             }
         });
     }
