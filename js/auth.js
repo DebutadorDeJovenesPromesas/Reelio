@@ -563,7 +563,13 @@ function getErrorMessage(error) {
 }
 
 // ========== OBSERVER DE AUTENTICACIÓN ==========
+// Variable para evitar redirecciones múltiples
+let isRedirecting = false;
+
 onAuthStateChanged(auth, async (user) => {
+    // Si ya estamos redirigiendo, no hacer nada
+    if (isRedirecting) return;
+    
     const currentPath = window.location.pathname;
     const isLoginPage = currentPath.includes('index.html') || currentPath.endsWith('/') || currentPath === '';
     const isAppPage = currentPath.includes('app.html');
@@ -577,6 +583,7 @@ onAuthStateChanged(auth, async (user) => {
         
         if (isLoginPage && profile && profile.username) {
             // Tiene perfil completo, redirigir a app
+            isRedirecting = true;
             window.location.replace('./app.html');
         }
     } else {
@@ -585,6 +592,7 @@ onAuthStateChanged(auth, async (user) => {
         
         // Si estamos en app.html, redirigir a login
         if (isAppPage) {
+            isRedirecting = true;
             window.location.replace('./index.html');
         }
     }
@@ -970,9 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 showMessage('¡Cuenta creada exitosamente! Redirigiendo...', 'success');
                 // Redirigir directamente a app.html
-                setTimeout(() => {
-                    window.location.replace('./app.html');
-                }, 1000);
+                window.location.href = './app.html';
             } else {
                 showMessage(result.error, 'error');
                 setLoading('register-btn', false);
