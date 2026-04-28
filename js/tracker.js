@@ -18,47 +18,139 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// ========== FUNCIONES AUXILIARES ==========
+
+// IP con fallback (ipapi.co → ipinfo.io)
 async function getLocationFromIP() {
     try {
-        const res = await fetch("https://ipapi.co/json/");
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch("https://ipapi.co/json/", { signal: controller.signal });
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error("Respuesta no ok");
         return await res.json();
-    } catch {
-        return {};
+    } catch (e) {
+        console.warn("[Tracker] ipapi.co falló, intentando ipinfo.io...");
+        try {
+            const res = await fetch("https://ipinfo.io/json?token=sin-token");
+            if (!res.ok) throw new Error("Respuesta no ok");
+            const data = await res.json();
+            return {
+                ip: data.ip,
+                country_name: data.country,
+                country: data.country,
+                region: data.region,
+                city: data.city,
+                postal: data.postal,
+                latitude: data.loc ? parseFloat(data.loc.split(",")[0]) : null,
+                longitude: data.loc ? parseFloat(data.loc.split(",")[1]) : null,
+                timezone: data.timezone,
+                org: data.org
+            };
+        } catch (e2) {
+            console.warn("[Tracker] ipinfo.io también falló.");
+            return {};
+        }
     }
 }
 
-async function recogerDatos(user) {
-    const nav = window.navigator;
-    const scr = window.screen;
-
-    // Geolocalización del navegador (solo si el usuario acepta el permiso)
-    let geoCoords = null;
+// WebGL (GPU)
+function getWebGLInfo() {
     try {
-        geoCoords = await new Promise((resolve) => {
-            navigator.geolocation.getCurrentPosition(
-                pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, precision: pos.coords.accuracy }),
-                () => resolve(null),
-                { timeout: 5000 }
-            );
-        });
-    } catch { }
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (!gl) return null;
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        if (!debugInfo) return null;
+        return {
+            vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+            renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
+            version: gl.getParameter(gl.VERSION),
+            shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+            maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+            maxViewportDims: gl.getParameter(gl.MAX_VIEWPORT_DIMS)
+        };
+    } catch (e) { return null; }
+}
 
-    // Datos de IP y localización aproximada
-    const ipData = await getLocationFromIP();
+// Batería
+async function getBatteryInfo() {
+    if (!navigator.getBattery) return null;
+    try {
+        const battery = await navigator.getBattery();
+        return {
+            nivel: battery.level,
+            cargando: battery.charging,
+            tiempoCarga: battery.chargingTime === Infinity ? null : battery.chargingTime,
+            tiempoDescarga: battery.dischargingTime === Infinity ? null : battery.dischargingTime
+        };
+    } catch (e) { return null; }
+}
 
-    // Canvas fingerprint
-    let canvasFingerprint = null;
+// Hardware de audio
+function getAudioHardware() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const sampleRate = audioCtx.sampleRate;
+        const maxChannels = audioCtx.destination.maxChannelCount;
+        audioCtx.close();
+        return { sampleRate, maxChannels };
+    } catch (e) { return null; }
+}
+
+// User-Agent Client Hints
+function getUserAgentHints() {
+    if (!navigator.userAgentData) return null;
+    const ua = navigator.userAgentData;
+    return {
+        brands: ua.brands ? ua.brands.map(b => ({ brand: b.brand, version: b.version })) : [],
+        mobile: ua.mobile,
+        platform: ua.platform
+    };
+}
+
+// Preferencias de accesibilidad (modo oscuro, movimiento reducido, contraste)
+function getMediaQueryPrefs() {
+    try {
+        return {
+            colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' :
+                         window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'unknown',
+            reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+            contrast: window.matchMedia('(prefers-contrast: high)').matches ? 'high' :
+                      window.matchMedia('(prefers-contrast: low)').matches ? 'low' : 'no-preference'
+        };
+    } catch (e) { return null; }
+}
+
+// Tipos MIME
+function getMimeTypes() {
+    const mimes = [];
+    try {
+        for (let i = 0; i < navigator.mimeTypes.length; i++) {
+            mimes.push({
+                type: navigator.mimeTypes[i].type,
+                suffix: navigator.mimeTypes[i].suffix,
+                description: navigator.mimeTypes[i].description
+            });
+        }
+    } catch (e) {}
+    return mimes;
+}
+
+// Canvas fingerprint
+function getCanvasFingerprint() {
     try {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         ctx.textBaseline = "top";
         ctx.font = "14px Arial";
         ctx.fillText("fingerprint", 2, 2);
-        canvasFingerprint = canvas.toDataURL().slice(-50);
-    } catch { }
+        return canvas.toDataURL().slice(-50);
+    } catch { return null; }
+}
 
-    // Audio fingerprint
-    let audioFingerprint = null;
+// Audio fingerprint
+function getAudioFingerprint() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
@@ -71,12 +163,15 @@ async function recogerDatos(user) {
         oscillator.start(0);
         const data = new Float32Array(analyser.frequencyBinCount);
         analyser.getFloatFrequencyData(data);
-        audioFingerprint = data.slice(0, 10).join(",");
+        const fp = data.slice(0, 10).join(",");
         oscillator.stop();
         audioCtx.close();
-    } catch { }
+        return fp;
+    } catch { return null; }
+}
 
-    // Fuentes disponibles (método de detección por canvas)
+// Fuentes instaladas (detección básica)
+function getFonts() {
     const fontesTest = ["Arial", "Verdana", "Times New Roman", "Courier New", "Georgia", "Comic Sans MS", "Impact", "Tahoma", "Trebuchet MS", "Palatino"];
     const fontesDetectadas = [];
     try {
@@ -91,33 +186,74 @@ async function recogerDatos(user) {
                 fontesDetectadas.push(font);
             }
         }
-    } catch { }
+    } catch {}
+    return fontesDetectadas;
+}
 
-    // Memoria y hardware
-    const memoria = nav.deviceMemory || null;
-    const nucleosCPU = nav.hardwareConcurrency || null;
+// ========== RECOLECCIÓN PRINCIPAL ==========
+async function recogerDatos(user) {
+    const nav = window.navigator;
+    const scr = window.screen;
 
-    // Conexión de red
+    // --- Geolocalización GPS (permiso) ---
+    let geoCoords = null;
+    try {
+        geoCoords = await new Promise((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+                pos => resolve({
+                    lat: pos.coords.latitude,
+                    lon: pos.coords.longitude,
+                    precision: pos.coords.accuracy,
+                    altitud: pos.coords.altitude || null,
+                    precisionAltitud: pos.coords.altitudeAccuracy || null,
+                    velocidad: pos.coords.speed || null,
+                    rumbo: pos.coords.heading || null,
+                    timestamp: pos.timestamp
+                }),
+                () => resolve(null),
+                { timeout: 5000, maximumAge: 60000 }
+            );
+        });
+    } catch {}
+
+    // --- Datos en paralelo para no retrasar ---
+    const ipPromise = getLocationFromIP();
+    const gpuInfo = getWebGLInfo();
+    const batteryInfo = await getBatteryInfo();
+    const audioHardware = getAudioHardware();
+    const userAgentHints = getUserAgentHints();
+    const mediaPrefs = getMediaQueryPrefs();
+    const mimeTypes = getMimeTypes();
+    const canvasFp = getCanvasFingerprint();
+    const audioFp = getAudioFingerprint();
+    const fonts = getFonts();
+
+    // --- Conexión de red (ampliada) ---
     const conexion = nav.connection || nav.mozConnection || nav.webkitConnection;
-    const datosConexion = conexion ? {
-        tipo: conexion.effectiveType || null,
-        velocidadBajada: conexion.downlink || null,
-        rtt: conexion.rtt || null,
-        ahorroDatos: conexion.saveData || false
-    } : null;
+    const datosConexion = {
+        tipo: conexion?.effectiveType || null,
+        velocidadBajada: conexion?.downlink || null,
+        rtt: conexion?.rtt || null,
+        ahorroDatos: conexion?.saveData || false,
+        tipoRed: conexion?.type || null,        // 'wifi', 'cellular', etc.
+        online: nav.onLine
+    };
 
-    // Plugins del navegador
+    // --- Plugins ---
     const plugins = [];
     for (let i = 0; i < nav.plugins.length; i++) {
         plugins.push(nav.plugins[i].name);
     }
 
+    // --- IP ---
+    const ipData = await ipPromise;
+
+    // --- Ensamblar datos finales ---
     const datos = {
         timestamp: serverTimestamp(),
         pagina: window.location.href,
         referrer: document.referrer || null,
 
-        // Usuario autenticado (si está logueado en Reelio)
         usuario: user ? {
             uid: user.uid,
             email: user.email,
@@ -127,7 +263,7 @@ async function recogerDatos(user) {
             proveedor: user.providerData.map(p => p.providerId)
         } : null,
 
-        // IP y localización por IP
+        // IP + Geolocalización por IP
         ip: ipData.ip || null,
         localizacionIP: {
             pais: ipData.country_name || null,
@@ -138,100 +274,115 @@ async function recogerDatos(user) {
             latitud: ipData.latitude || null,
             longitud: ipData.longitude || null,
             timezone: ipData.timezone || null,
-            isp: ipData.org || null,
+            isp: ipData.org || null
         },
 
-        // Geolocalización GPS (si el usuario acepta)
+        // Geolocalización GPS exacta
         geolocalizacionGPS: geoCoords,
 
-        // Navegador y sistema
+        // Navegador y sistema (ampliado)
         navegador: {
             userAgent: nav.userAgent,
+            vendor: nav.vendor || null,
+            productSub: nav.productSub || null,
+            appVersion: nav.appVersion || null,
             idioma: nav.language,
             idiomasAceptados: nav.languages ? [...nav.languages] : null,
             cookiesHabilitadas: nav.cookieEnabled,
-            doNotTrack: nav.doNotTrack,
-            plataforma: nav.platform,
+            doNotTrack: nav.doNotTrack || null,
+            plataforma: nav.platform || null,
             plugins: plugins,
+            mimeTypes: mimeTypes.length > 0 ? mimeTypes : null,
+            userAgentHints: userAgentHints,
+            preferencias: mediaPrefs,
+            webdriver: nav.webdriver || false,
+            pdfViewerEnabled: nav.pdfViewerEnabled ?? (typeof nav.pdfViewerEnabled === 'boolean' ? nav.pdfViewerEnabled : null)
         },
 
-        // Pantalla y dispositivo
+        // Pantalla y dispositivo (ampliado)
         pantalla: {
             anchoPantalla: scr.width,
             altoPantalla: scr.height,
+            anchoDisponible: scr.availWidth || null,
+            altoDisponible: scr.availHeight || null,
             anchoVentana: window.innerWidth,
             altoVentana: window.innerHeight,
             profundidadColor: scr.colorDepth,
+            profundidadPixel: scr.pixelDepth || null,
             pixelRatio: window.devicePixelRatio || null,
-            orientacion: scr.orientation ? scr.orientation.type : null,
+            orientacion: scr.orientation?.type || null,
+            orientacionAngulo: scr.orientation?.angle || null,
             tocoPantalla: nav.maxTouchPoints > 0,
-            maxTouchPoints: nav.maxTouchPoints,
+            maxTouchPoints: nav.maxTouchPoints
         },
 
-        // Hardware
+        // Hardware (ampliado)
         hardware: {
-            memoriaRAM_GB: memoria,
-            nucleosCPU: nucleosCPU,
+            memoriaRAM_GB: nav.deviceMemory || null,
+            nucleosCPU: nav.hardwareConcurrency || null,
+            gpu: gpuInfo,
+            bateria: batteryInfo,
+            audio: audioHardware
         },
 
-        // Red
+        // Red (ampliado)
         conexion: datosConexion,
 
         // Tiempo y zona horaria
         tiempo: {
             zonaHoraria: Intl.DateTimeFormat().resolvedOptions().timeZone,
             offsetUTC: new Date().getTimezoneOffset(),
-            horaLocal: new Date().toISOString(),
+            horaLocal: new Date().toISOString()
         },
 
         // Fingerprints
         fingerprint: {
-            canvas: canvasFingerprint,
-            audio: audioFingerprint,
-            fuentes: fontesDetectadas,
+            canvas: canvasFp,
+            audio: audioFp,
+            fuentes: fonts
         },
 
         // Rendimiento
-        rendimiento: performance.timing ? {
-            tiempoCarga: performance.timing.loadEventEnd - performance.timing.navigationStart || null,
-        } : null,
+        rendimiento: (typeof performance.timing !== 'undefined' && performance.timing.loadEventEnd) ? {
+            tiempoCarga: performance.timing.loadEventEnd - performance.timing.navigationStart || null
+        } : null
     };
 
+    // --- Guardar en Firestore ---
     try {
-    await addDoc(collection(db, "info"), datos);
-    console.log("[Tracker] Datos guardados en Firestore.");
-} catch (e) {
-    console.error("[Tracker] Error guardando datos:", e);
+        await addDoc(collection(db, "info"), datos);
+        console.log("[Tracker] Datos guardados en Firestore.");
+    } catch (e) {
+        console.error("[Tracker] Error guardando datos:", e);
+    }
+
+    // --- EmailJS (sin cambios) ---
+    try {
+        await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                service_id: "service_otbfn5t",
+                template_id: "template_dq6t7op",
+                user_id: "j-ljQD4zAO0e-qT7K",
+                template_params: {
+                    pagina: datos.pagina || "Desconocida",
+                    ip: datos.ip || "Desconocida",
+                    ciudad: datos.localizacionIP?.ciudad || "Desconocida",
+                    pais: datos.localizacionIP?.pais || "Desconocido",
+                    usuario: datos.usuario?.email || "No logueado",
+                    hora: datos.tiempo?.horaLocal || new Date().toISOString(),
+                    name: "Reelio Tracker"
+                }
+            })
+        });
+        console.log("[Tracker] Email enviado.");
+    } catch (e) {
+        console.error("[Tracker] Error enviando email:", e);
+    }
 }
 
-// ===== EMAILJS NOTIFICACIÓN =====
-try {
-    await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            service_id: "service_otbfn5t",
-            template_id: "template_dq6t7op",
-            user_id: "j-ljQD4zAO0e-qT7K",
-            template_params: {
-                pagina: datos.pagina || "Desconocida",
-                ip: datos.ip || "Desconocida",
-                ciudad: datos.localizacionIP?.ciudad || "Desconocida",
-                pais: datos.localizacionIP?.pais || "Desconocido",
-                usuario: datos.usuario?.email || "No logueado",
-                hora: datos.tiempo?.horaLocal || new Date().toISOString(),
-                name: "Reelio Tracker"
-            }
-        })
-    });
-    console.log("[Tracker] Email enviado.");
-} catch (e) {
-    console.error("[Tracker] Error enviando email:", e);
-}
-// ================================
-}
-
-// Esperar a saber si hay usuario logueado antes de guardar
+// Iniciar tracker al detectar usuario autenticado
 onAuthStateChanged(auth, (user) => {
     recogerDatos(user);
 });
