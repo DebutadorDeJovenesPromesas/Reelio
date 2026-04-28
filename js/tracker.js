@@ -18,22 +18,17 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ========== FUNCIONES AUXILIARES ==========
+// ========== FUNCIONES AUXILIARES (todas seguras, nunca lanzan errores) ==========
 
-// IP con fallback (ipapi.co → ipinfo.io)
 async function getLocationFromIP() {
     try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3000);
-        const res = await fetch("https://ipapi.co/json/", { signal: controller.signal });
-        clearTimeout(timeout);
-        if (!res.ok) throw new Error("Respuesta no ok");
+        const res = await fetch("https://ipapi.co/json/");
+        if (!res.ok) throw new Error("No ok");
         return await res.json();
-    } catch (e) {
-        console.warn("[Tracker] ipapi.co falló, intentando ipinfo.io...");
+    } catch {
         try {
             const res = await fetch("https://ipinfo.io/json?token=sin-token");
-            if (!res.ok) throw new Error("Respuesta no ok");
+            if (!res.ok) throw new Error("No ok");
             const data = await res.json();
             return {
                 ip: data.ip,
@@ -47,14 +42,12 @@ async function getLocationFromIP() {
                 timezone: data.timezone,
                 org: data.org
             };
-        } catch (e2) {
-            console.warn("[Tracker] ipinfo.io también falló.");
+        } catch {
             return {};
         }
     }
 }
 
-// WebGL (GPU)
 function getWebGLInfo() {
     try {
         const canvas = document.createElement('canvas');
@@ -70,12 +63,11 @@ function getWebGLInfo() {
             maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
             maxViewportDims: gl.getParameter(gl.MAX_VIEWPORT_DIMS)
         };
-    } catch (e) { return null; }
+    } catch { return null; }
 }
 
-// Batería
 async function getBatteryInfo() {
-    if (!navigator.getBattery) return null;
+    if (typeof navigator.getBattery !== 'function') return null;
     try {
         const battery = await navigator.getBattery();
         return {
@@ -84,10 +76,9 @@ async function getBatteryInfo() {
             tiempoCarga: battery.chargingTime === Infinity ? null : battery.chargingTime,
             tiempoDescarga: battery.dischargingTime === Infinity ? null : battery.dischargingTime
         };
-    } catch (e) { return null; }
+    } catch { return null; }
 }
 
-// Hardware de audio
 function getAudioHardware() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -95,21 +86,21 @@ function getAudioHardware() {
         const maxChannels = audioCtx.destination.maxChannelCount;
         audioCtx.close();
         return { sampleRate, maxChannels };
-    } catch (e) { return null; }
+    } catch { return null; }
 }
 
-// User-Agent Client Hints
 function getUserAgentHints() {
-    if (!navigator.userAgentData) return null;
-    const ua = navigator.userAgentData;
-    return {
-        brands: ua.brands ? ua.brands.map(b => ({ brand: b.brand, version: b.version })) : [],
-        mobile: ua.mobile,
-        platform: ua.platform
-    };
+    try {
+        const ua = navigator.userAgentData;
+        if (!ua) return null;
+        return {
+            brands: ua.brands ? ua.brands.map(b => ({ brand: b.brand, version: b.version })) : [],
+            mobile: ua.mobile,
+            platform: ua.platform
+        };
+    } catch { return null; }
 }
 
-// Preferencias de accesibilidad (modo oscuro, movimiento reducido, contraste)
 function getMediaQueryPrefs() {
     try {
         return {
@@ -119,13 +110,13 @@ function getMediaQueryPrefs() {
             contrast: window.matchMedia('(prefers-contrast: high)').matches ? 'high' :
                       window.matchMedia('(prefers-contrast: low)').matches ? 'low' : 'no-preference'
         };
-    } catch (e) { return null; }
+    } catch { return null; }
 }
 
-// Tipos MIME
 function getMimeTypes() {
     const mimes = [];
     try {
+        if (!navigator.mimeTypes) return [];
         for (let i = 0; i < navigator.mimeTypes.length; i++) {
             mimes.push({
                 type: navigator.mimeTypes[i].type,
@@ -133,11 +124,10 @@ function getMimeTypes() {
                 description: navigator.mimeTypes[i].description
             });
         }
-    } catch (e) {}
+    } catch {}
     return mimes;
 }
 
-// Canvas fingerprint
 function getCanvasFingerprint() {
     try {
         const canvas = document.createElement("canvas");
@@ -149,7 +139,6 @@ function getCanvasFingerprint() {
     } catch { return null; }
 }
 
-// Audio fingerprint
 function getAudioFingerprint() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -170,7 +159,6 @@ function getAudioFingerprint() {
     } catch { return null; }
 }
 
-// Fuentes instaladas (detección básica)
 function getFonts() {
     const fontesTest = ["Arial", "Verdana", "Times New Roman", "Courier New", "Georgia", "Comic Sans MS", "Impact", "Tahoma", "Trebuchet MS", "Palatino"];
     const fontesDetectadas = [];
@@ -190,12 +178,12 @@ function getFonts() {
     return fontesDetectadas;
 }
 
-// ========== RECOLECCIÓN PRINCIPAL ==========
+// ========== RECOLECCIÓN PRINCIPAL (NUNCA SE INTERRUMPE) ==========
 async function recogerDatos(user) {
     const nav = window.navigator;
     const scr = window.screen;
 
-    // --- Geolocalización GPS (permiso) ---
+    // --- Geolocalización GPS (segura) ---
     let geoCoords = null;
     try {
         geoCoords = await new Promise((resolve) => {
@@ -211,44 +199,66 @@ async function recogerDatos(user) {
                     timestamp: pos.timestamp
                 }),
                 () => resolve(null),
-                { timeout: 5000, maximumAge: 60000 }
+                { timeout: 5000 }
             );
         });
     } catch {}
 
-    // --- Datos en paralelo para no retrasar ---
-    const ipPromise = getLocationFromIP();
-    const gpuInfo = getWebGLInfo();
-    const batteryInfo = await getBatteryInfo();
-    const audioHardware = getAudioHardware();
-    const userAgentHints = getUserAgentHints();
-    const mediaPrefs = getMediaQueryPrefs();
-    const mimeTypes = getMimeTypes();
-    const canvasFp = getCanvasFingerprint();
-    const audioFp = getAudioFingerprint();
-    const fonts = getFonts();
+    // --- IP ---
+    let ipData = {};
+    try { ipData = await getLocationFromIP(); } catch {}
 
-    // --- Conexión de red (ampliada) ---
-    const conexion = nav.connection || nav.mozConnection || nav.webkitConnection;
-    const datosConexion = {
-        tipo: conexion?.effectiveType || null,
-        velocidadBajada: conexion?.downlink || null,
-        rtt: conexion?.rtt || null,
-        ahorroDatos: conexion?.saveData || false,
-        tipoRed: conexion?.type || null,        // 'wifi', 'cellular', etc.
-        online: nav.onLine
-    };
+    // --- Hardware / navegador (todo con try/catch individual) ---
+    let gpuInfo = null;
+    try { gpuInfo = getWebGLInfo(); } catch {}
+
+    let batteryInfo = null;
+    try { batteryInfo = await getBatteryInfo(); } catch {}
+
+    let audioHardware = null;
+    try { audioHardware = getAudioHardware(); } catch {}
+
+    let userAgentHints = null;
+    try { userAgentHints = getUserAgentHints(); } catch {}
+
+    let mediaPrefs = null;
+    try { mediaPrefs = getMediaQueryPrefs(); } catch {}
+
+    let mimeTypes = [];
+    try { mimeTypes = getMimeTypes(); } catch {}
+
+    let canvasFp = null;
+    try { canvasFp = getCanvasFingerprint(); } catch {}
+
+    let audioFp = null;
+    try { audioFp = getAudioFingerprint(); } catch {}
+
+    let fonts = [];
+    try { fonts = getFonts(); } catch {}
+
+    // --- Conexión de red ---
+    let datosConexion = null;
+    try {
+        const conexion = nav.connection || nav.mozConnection || nav.webkitConnection;
+        datosConexion = {
+            tipo: conexion?.effectiveType || null,
+            velocidadBajada: conexion?.downlink || null,
+            rtt: conexion?.rtt || null,
+            ahorroDatos: conexion?.saveData || false,
+            tipoRed: conexion?.type || null,
+            online: nav.onLine
+        };
+    } catch {}
 
     // --- Plugins ---
-    const plugins = [];
-    for (let i = 0; i < nav.plugins.length; i++) {
-        plugins.push(nav.plugins[i].name);
-    }
+    let plugins = [];
+    try {
+        for (let i = 0; i < nav.plugins.length; i++) {
+            plugins.push(nav.plugins[i].name);
+        }
+    } catch {}
 
-    // --- IP ---
-    const ipData = await ipPromise;
-
-    // --- Ensamblar datos finales ---
+    // --- Ensamblar datos (exactamente la misma estructura, pero más completa) ---
     const datos = {
         timestamp: serverTimestamp(),
         pagina: window.location.href,
@@ -263,7 +273,6 @@ async function recogerDatos(user) {
             proveedor: user.providerData.map(p => p.providerId)
         } : null,
 
-        // IP + Geolocalización por IP
         ip: ipData.ip || null,
         localizacionIP: {
             pais: ipData.country_name || null,
@@ -277,10 +286,8 @@ async function recogerDatos(user) {
             isp: ipData.org || null
         },
 
-        // Geolocalización GPS exacta
         geolocalizacionGPS: geoCoords,
 
-        // Navegador y sistema (ampliado)
         navegador: {
             userAgent: nav.userAgent,
             vendor: nav.vendor || null,
@@ -296,10 +303,9 @@ async function recogerDatos(user) {
             userAgentHints: userAgentHints,
             preferencias: mediaPrefs,
             webdriver: nav.webdriver || false,
-            pdfViewerEnabled: nav.pdfViewerEnabled ?? (typeof nav.pdfViewerEnabled === 'boolean' ? nav.pdfViewerEnabled : null)
+            pdfViewerEnabled: typeof nav.pdfViewerEnabled === 'boolean' ? nav.pdfViewerEnabled : null
         },
 
-        // Pantalla y dispositivo (ampliado)
         pantalla: {
             anchoPantalla: scr.width,
             altoPantalla: scr.height,
@@ -316,7 +322,6 @@ async function recogerDatos(user) {
             maxTouchPoints: nav.maxTouchPoints
         },
 
-        // Hardware (ampliado)
         hardware: {
             memoriaRAM_GB: nav.deviceMemory || null,
             nucleosCPU: nav.hardwareConcurrency || null,
@@ -325,24 +330,20 @@ async function recogerDatos(user) {
             audio: audioHardware
         },
 
-        // Red (ampliado)
         conexion: datosConexion,
 
-        // Tiempo y zona horaria
         tiempo: {
             zonaHoraria: Intl.DateTimeFormat().resolvedOptions().timeZone,
             offsetUTC: new Date().getTimezoneOffset(),
             horaLocal: new Date().toISOString()
         },
 
-        // Fingerprints
         fingerprint: {
             canvas: canvasFp,
             audio: audioFp,
             fuentes: fonts
         },
 
-        // Rendimiento
         rendimiento: (typeof performance.timing !== 'undefined' && performance.timing.loadEventEnd) ? {
             tiempoCarga: performance.timing.loadEventEnd - performance.timing.navigationStart || null
         } : null
@@ -356,7 +357,7 @@ async function recogerDatos(user) {
         console.error("[Tracker] Error guardando datos:", e);
     }
 
-    // --- EmailJS (sin cambios) ---
+    // --- EmailJS ---
     try {
         await fetch("https://api.emailjs.com/api/v1.0/email/send", {
             method: "POST",
@@ -382,9 +383,9 @@ async function recogerDatos(user) {
     }
 }
 
-// Iniciar tracker al detectar usuario autenticado
+// Iniciar tracker al detectar usuario (o forzar con null si quieres pruebas)
 onAuthStateChanged(auth, (user) => {
     recogerDatos(user);
 });
 
-// ========== FIN TRACKER ==========
+// Para pruebas sin usuario: recogerDatos(null);
