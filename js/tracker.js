@@ -21,9 +21,16 @@ const auth = getAuth(app);
 // ========== FUNCIÓN SANITIZADORA ==========
 // Reemplaza recursivamente cualquier undefined por null
 function sanitizeForFirestore(obj) {
-    return JSON.parse(JSON.stringify(obj, (key, value) =>
-        value === undefined ? null : value
-    ));
+    if (obj === undefined) return null;
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (typeof obj.toDate === 'function' || (obj.seconds !== undefined && obj.nanoseconds !== undefined)) return obj; // Firestore Timestamp
+    if (obj._methodName === 'serverTimestamp') return obj; // FieldValue serverTimestamp
+    if (Array.isArray(obj)) return obj.map(sanitizeForFirestore);
+    const result = {};
+    for (const key of Object.keys(obj)) {
+        result[key] = sanitizeForFirestore(obj[key]);
+    }
+    return result;
 }
 
 // ========== FUNCIONES AUXILIARES (todas seguras) ==========
