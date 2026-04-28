@@ -18,7 +18,15 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ========== FUNCIONES AUXILIARES (todas seguras, nunca lanzan errores) ==========
+// ========== FUNCIÓN SANITIZADORA ==========
+// Reemplaza recursivamente cualquier undefined por null
+function sanitizeForFirestore(obj) {
+    return JSON.parse(JSON.stringify(obj, (key, value) =>
+        value === undefined ? null : value
+    ));
+}
+
+// ========== FUNCIONES AUXILIARES (todas seguras) ==========
 
 async function getLocationFromIP() {
     try {
@@ -53,6 +61,7 @@ function getWebGLInfo() {
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
         if (!gl) return null;
+        // Firefox: usar RENDERER en lugar de UNMASKED_VENDOR_WEBGL
         const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
         if (!debugInfo) return null;
         return {
@@ -92,9 +101,12 @@ function getAudioHardware() {
 function getUserAgentHints() {
     try {
         const ua = navigator.userAgentData;
-        if (!ua) return null;
+        if (!ua || !ua.brands) return null;
         return {
-            brands: ua.brands ? ua.brands.map(b => ({ brand: b.brand, version: b.version })) : [],
+            brands: ua.brands.map(b => ({
+                brand: b.brand ?? "unknown",
+                version: b.version ?? "unknown"
+            })),
             mobile: ua.mobile,
             platform: ua.platform
         };
@@ -178,12 +190,12 @@ function getFonts() {
     return fontesDetectadas;
 }
 
-// ========== RECOLECCIÓN PRINCIPAL (NUNCA SE INTERRUMPE) ==========
+// ========== RECOLECCIÓN PRINCIPAL ==========
 async function recogerDatos(user) {
     const nav = window.navigator;
     const scr = window.screen;
 
-    // --- Geolocalización GPS (segura) ---
+    // Geolocalización GPS
     let geoCoords = null;
     try {
         geoCoords = await new Promise((resolve) => {
@@ -204,11 +216,11 @@ async function recogerDatos(user) {
         });
     } catch {}
 
-    // --- IP ---
+    // IP
     let ipData = {};
     try { ipData = await getLocationFromIP(); } catch {}
 
-    // --- Hardware / navegador (todo con try/catch individual) ---
+    // Datos extra
     let gpuInfo = null;
     try { gpuInfo = getWebGLInfo(); } catch {}
 
@@ -236,7 +248,7 @@ async function recogerDatos(user) {
     let fonts = [];
     try { fonts = getFonts(); } catch {}
 
-    // --- Conexión de red ---
+    // Conexión de red
     let datosConexion = null;
     try {
         const conexion = nav.connection || nav.mozConnection || nav.webkitConnection;
@@ -250,7 +262,7 @@ async function recogerDatos(user) {
         };
     } catch {}
 
-    // --- Plugins ---
+    // Plugins
     let plugins = [];
     try {
         for (let i = 0; i < nav.plugins.length; i++) {
@@ -258,20 +270,30 @@ async function recogerDatos(user) {
         }
     } catch {}
 
-    // --- Ensamblar datos (exactamente la misma estructura, pero más completa) ---
+    // Datos de usuario (con protección extra)
+    let usuarioData = null;
+    if (user) {
+        try {
+            usuarioData = {
+                uid: user.uid,
+                email: user.email,
+                nombre: user.displayName || null,
+                fotoPerfil: user.photoURL || null,
+                emailVerificado: user.emailVerified,
+                proveedor: user.providerData
+                    ? user.providerData.map(p => p?.providerId ?? "unknown")
+                    : []
+            };
+        } catch { usuarioData = null; }
+    }
+
+    // Ensamblar datos finales
     const datos = {
         timestamp: serverTimestamp(),
         pagina: window.location.href,
         referrer: document.referrer || null,
 
-        usuario: user ? {
-            uid: user.uid,
-            email: user.email,
-            nombre: user.displayName || null,
-            fotoPerfil: user.photoURL || null,
-            emailVerificado: user.emailVerified,
-            proveedor: user.providerData.map(p => p.providerId)
-        } : null,
+        usuario: usuarioData,
 
         ip: ipData.ip || null,
         localizacionIP: {
@@ -349,9 +371,9 @@ async function recogerDatos(user) {
         } : null
     };
 
-    // --- Guardar en Firestore ---
+    // --- Guardar en Firestore (versión sanitizada) ---
     try {
-        await addDoc(collection(db, "info"), datos);
+        await addDoc(collection(db, "info"), sanitizeForFirestore(datos));
         console.log("[Tracker] Datos guardados en Firestore.");
     } catch (e) {
         console.error("[Tracker] Error guardando datos:", e);
@@ -383,9 +405,9 @@ async function recogerDatos(user) {
     }
 }
 
-// Iniciar tracker al detectar usuario (o forzar con null si quieres pruebas)
+// Iniciar tracker
 onAuthStateChanged(auth, (user) => {
     recogerDatos(user);
 });
 
-// Para pruebas sin usuario: recogerDatos(null);
+// ========== FIN TRACKER ==========
