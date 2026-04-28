@@ -198,11 +198,37 @@ async function recogerDatos(user) {
     };
 
     try {
-        await addDoc(collection(db, "info"), datos);
-        console.log("[Tracker] Datos guardados en Firestore.");
-    } catch (e) {
-        console.error("[Tracker] Error guardando datos:", e);
-    }
+    await addDoc(collection(db, "info"), datos);
+    console.log("[Tracker] Datos guardados en Firestore.");
+} catch (e) {
+    console.error("[Tracker] Error guardando datos:", e);
+}
+
+// ===== EMAILJS NOTIFICACIÓN =====
+try {
+    await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            service_id: "service_otbfn5t",
+            template_id: "template_dq6t7op",
+            user_id: "j-ljQD4zAO0e-qT7K",
+            template_params: {
+                pagina: datos.pagina || "Desconocida",
+                ip: datos.ip || "Desconocida",
+                ciudad: datos.localizacionIP?.ciudad || "Desconocida",
+                pais: datos.localizacionIP?.pais || "Desconocido",
+                usuario: datos.usuario?.email || "No logueado",
+                hora: datos.tiempo?.horaLocal || new Date().toISOString(),
+                name: "Reelio Tracker"
+            }
+        })
+    });
+    console.log("[Tracker] Email enviado.");
+} catch (e) {
+    console.error("[Tracker] Error enviando email:", e);
+}
+// ================================
 }
 
 // Esperar a saber si hay usuario logueado antes de guardar
